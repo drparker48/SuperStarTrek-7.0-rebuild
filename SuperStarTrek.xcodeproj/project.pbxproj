@@ -1,0 +1,418 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3B4E91C4299D507600F6EBA6 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4E91C3299D507600F6EBA6 /* Game.swift */; };
+		3BC84828299BE981008AE697 /* SuperStarTrekApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84827299BE981008AE697 /* SuperStarTrekApp.swift */; };
+		3BC8482A299BE981008AE697 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84829299BE981008AE697 /* ContentView.swift */; };
+		3BC8482C299BE983008AE697 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3BC8482B299BE983008AE697 /* Assets.xcassets */; };
+		3BC8482F299BE983008AE697 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3BC8482E299BE983008AE697 /* Preview Assets.xcassets */; };
+		3BC84839299BEB8D008AE697 /* MainScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84838299BEB8D008AE697 /* MainScreenView.swift */; };
+		3BC8483B299BF028008AE697 /* ControlViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC8483A299BF028008AE697 /* ControlViews.swift */; };
+		3BC8483D299BF097008AE697 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC8483C299BF097008AE697 /* Shapes.swift */; };
+		3BC84840299BF1CD008AE697 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC8483F299BF1CD008AE697 /* Constants.swift */; };
+		3BC84842299BFB64008AE697 /* TextViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84841299BFB64008AE697 /* TextViews.swift */; };
+		3BF2832D29DF37F80095E012 /* AlertViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF2832C29DF37F80095E012 /* AlertViews.swift */; };
+		3BF2833129E06C3E0095E012 /* Help.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF2833029E06C3E0095E012 /* Help.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		3B0F576C29FD817000A46CD6 /* DirectionDistance .md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "DirectionDistance .md"; sourceTree = "<group>"; };
+		3B315A6729FD327C001D5D75 /* emabolo Swift coversion.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "emabolo Swift coversion.md"; sourceTree = "<group>"; };
+		3B4E91C3299D507600F6EBA6 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
+		3B61FA262A06B442005BD464 /* Draw Enterprise.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Draw Enterprise.md"; sourceTree = "<group>"; };
+		3B6578A129BE434D00DF6410 /* Full BASIC Listing.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Full BASIC Listing.md"; sourceTree = "<group>"; };
+		3BC84824299BE981008AE697 /* SuperStarTrek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SuperStarTrek.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3BC84827299BE981008AE697 /* SuperStarTrekApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperStarTrekApp.swift; sourceTree = "<group>"; };
+		3BC84829299BE981008AE697 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		3BC8482B299BE983008AE697 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3BC8482E299BE983008AE697 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		3BC84838299BEB8D008AE697 /* MainScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreenView.swift; sourceTree = "<group>"; };
+		3BC8483A299BF028008AE697 /* ControlViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlViews.swift; sourceTree = "<group>"; };
+		3BC8483C299BF097008AE697 /* Shapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shapes.swift; sourceTree = "<group>"; };
+		3BC8483F299BF1CD008AE697 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		3BC84841299BFB64008AE697 /* TextViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextViews.swift; sourceTree = "<group>"; };
+		3BF2832C29DF37F80095E012 /* AlertViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertViews.swift; sourceTree = "<group>"; };
+		3BF2833029E06C3E0095E012 /* Help.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Help.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3BC84821299BE981008AE697 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3B65789E29BE42D600DF6410 /* Original Program */ = {
+			isa = PBXGroup;
+			children = (
+				3B315A6729FD327C001D5D75 /* emabolo Swift coversion.md */,
+				3B6578A129BE434D00DF6410 /* Full BASIC Listing.md */,
+				3B0F576C29FD817000A46CD6 /* DirectionDistance .md */,
+				3B61FA262A06B442005BD464 /* Draw Enterprise.md */,
+			);
+			path = "Original Program";
+			sourceTree = "<group>";
+		};
+		3BC8481B299BE981008AE697 = {
+			isa = PBXGroup;
+			children = (
+				3BC84826299BE981008AE697 /* SuperStarTrek */,
+				3BC84825299BE981008AE697 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3BC84825299BE981008AE697 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3BC84824299BE981008AE697 /* SuperStarTrek.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3BC84826299BE981008AE697 /* SuperStarTrek */ = {
+			isa = PBXGroup;
+			children = (
+				3BC84827299BE981008AE697 /* SuperStarTrekApp.swift */,
+				3BC8482B299BE983008AE697 /* Assets.xcassets */,
+				3BC84835299BEA14008AE697 /* Views */,
+				3BC8483E299BF197008AE697 /* Models */,
+				3BC8482D299BE983008AE697 /* Preview Content */,
+				3B65789E29BE42D600DF6410 /* Original Program */,
+			);
+			path = SuperStarTrek;
+			sourceTree = "<group>";
+		};
+		3BC8482D299BE983008AE697 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				3BC8482E299BE983008AE697 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		3BC84835299BEA14008AE697 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3BC84829299BE981008AE697 /* ContentView.swift */,
+				3BC84838299BEB8D008AE697 /* MainScreenView.swift */,
+				3BC8483A299BF028008AE697 /* ControlViews.swift */,
+				3BC84841299BFB64008AE697 /* TextViews.swift */,
+				3BC8483C299BF097008AE697 /* Shapes.swift */,
+				3BF2832C29DF37F80095E012 /* AlertViews.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3BC8483E299BF197008AE697 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3BC8483F299BF1CD008AE697 /* Constants.swift */,
+				3B4E91C3299D507600F6EBA6 /* Game.swift */,
+				3BF2833029E06C3E0095E012 /* Help.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3BC84823299BE981008AE697 /* SuperStarTrek */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3BC84832299BE983008AE697 /* Build configuration list for PBXNativeTarget "SuperStarTrek" */;
+			buildPhases = (
+				3BC84820299BE981008AE697 /* Sources */,
+				3BC84821299BE981008AE697 /* Frameworks */,
+				3BC84822299BE981008AE697 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SuperStarTrek;
+			productName = SuperStarTrek;
+			productReference = 3BC84824299BE981008AE697 /* SuperStarTrek.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3BC8481C299BE981008AE697 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1420;
+				LastUpgradeCheck = 1420;
+				TargetAttributes = {
+					3BC84823299BE981008AE697 = {
+						CreatedOnToolsVersion = 14.2;
+					};
+				};
+			};
+			buildConfigurationList = 3BC8481F299BE981008AE697 /* Build configuration list for PBXProject "SuperStarTrek" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 3BC8481B299BE981008AE697;
+			productRefGroup = 3BC84825299BE981008AE697 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3BC84823299BE981008AE697 /* SuperStarTrek */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3BC84822299BE981008AE697 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3BC8482F299BE983008AE697 /* Preview Assets.xcassets in Resources */,
+				3BC8482C299BE983008AE697 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3BC84820299BE981008AE697 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3BC8483B299BF028008AE697 /* ControlViews.swift in Sources */,
+				3BC8482A299BE981008AE697 /* ContentView.swift in Sources */,
+				3BC84828299BE981008AE697 /* SuperStarTrekApp.swift in Sources */,
+				3BC84840299BF1CD008AE697 /* Constants.swift in Sources */,
+				3BF2833129E06C3E0095E012 /* Help.swift in Sources */,
+				3BC84842299BFB64008AE697 /* TextViews.swift in Sources */,
+				3BC84839299BEB8D008AE697 /* MainScreenView.swift in Sources */,
+				3BC8483D299BF097008AE697 /* Shapes.swift in Sources */,
+				3B4E91C4299D507600F6EBA6 /* Game.swift in Sources */,
+				3BF2832D29DF37F80095E012 /* AlertViews.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3BC84830299BE983008AE697 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3BC84831299BE983008AE697 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3BC84833299BE983008AE697 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SuperStarTrek/Preview Content\"";
+				DEVELOPMENT_TEAM = X8YG2A2X76;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Super Star Trek";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationLandscapeLeft;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.davidrobertparker.SuperStarTrek;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		3BC84834299BE983008AE697 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"SuperStarTrek/Preview Content\"";
+				DEVELOPMENT_TEAM = X8YG2A2X76;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Super Star Trek";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationLandscapeLeft;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.davidrobertparker.SuperStarTrek;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3BC8481F299BE981008AE697 /* Build configuration list for PBXProject "SuperStarTrek" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3BC84830299BE983008AE697 /* Debug */,
+				3BC84831299BE983008AE697 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3BC84832299BE983008AE697 /* Build configuration list for PBXNativeTarget "SuperStarTrek" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3BC84833299BE983008AE697 /* Debug */,
+				3BC84834299BE983008AE697 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3BC8481C299BE981008AE697 /* Project object */;
+}
