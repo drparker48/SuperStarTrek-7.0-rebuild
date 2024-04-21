@@ -1,0 +1,5 @@
+  mutating func shieldControl () {
+    if damage[7] < 0 {
+      messageEntries.append(MessageEntry(line: "*** SHIELD CONTROL INOPERABLE ***"))
+    }
+  } //END OF shieldControl

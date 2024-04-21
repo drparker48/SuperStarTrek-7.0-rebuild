@@ -1,0 +1,42 @@
+import SwiftUI
+
+struct ContentView: View {
+    @State private var xCoordinate = 0
+    @State private var yCoordinate = 0
+    
+    let gridSize = 5 // Adjust as needed
+    
+    var body: some View {
+        VStack {
+            HStack {
+                Text("X:")
+                Picker(selection: $xCoordinate, label: Text("")) {
+                    ForEach(0..<gridSize) { index in
+                        Text("\(index)").tag(index)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .frame(width: 100)
+                
+                Text("Y:")
+                Picker(selection: $yCoordinate, label: Text("")) {
+                    ForEach(0..<gridSize) { index in
+                        Text("\(index)").tag(index)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .frame(width: 100)
+            }
+            
+            Text("Selected Coordinates: (\(xCoordinate), \(yCoordinate))")
+                .padding()
+        }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
+}
+

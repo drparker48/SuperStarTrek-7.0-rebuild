@@ -1,0 +1,24 @@
+      //IMPULSE ENGINES
+      Button(action: {impulseAlert = true})
+      {
+        CommandText(text: "Impulse Engines")
+          .accentColor(.green)
+          .alert("Impulse Engines", isPresented: $impulseAlert, actions: {
+            TextField("Destination Sector Row", text: $endX)
+              .keyboardType(.decimalPad)
+              .onSubmit {}
+            TextField("Destination Sector Column", text: $endY)
+              .keyboardType(.decimalPad)
+              .onSubmit {}
+            Button("Engage", action: {game.impulseEngines(currentSector: (Int(game.sectorRow), Int(game.sectorCol)), targetSector: (Int(endX) ?? 0, Int(endY) ?? 0))
+        
+            })
+            Button("Cancel", role:.cancel, action: {})
+          }, message: {
+            Text(Constants.Help.impulseHelp)
+          })
+      }
+      .disabled(!game.gameStarted)
+      //Now not disabled when damaged as this would leave ship stranded.
+      //Instead a warning message is issued when damaged and warp speed maximum reduced to 0.2 (effectively allowing only 2 sectors movement)
+     

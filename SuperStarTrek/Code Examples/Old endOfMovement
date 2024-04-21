@@ -1,0 +1,14 @@
+  mutating func endOfMovement (warp: Double) {
+    var dayIncrement = 1.0
+    if debug {print("endOfMovement called")}
+    quadrant[Int(sectorRow)][Int(sectorCol)] = "<*>"
+    consumeEnergy()
+    if warp < 1 {
+      dayIncrement = 0.1 * Double(Int(10 * warp))
+    }
+      currentStardate += Int(dayIncrement)
+    if currentStardate > startingStardate + daysLeft {
+      gameOver(reason: "Time")
+    }
+    checkIfDocked()
+  }

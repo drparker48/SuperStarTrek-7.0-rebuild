@@ -1,0 +1,22 @@
+struct MiddleView: View {
+  @Binding var game: Game
+  var body: some View {
+    ScrollView() {
+      ScrollViewReader { proxy in
+        ForEach(game.messageEntries.indices,id: \.self) { index in
+          let messageEntry = game.messageEntries[index]
+          RowView(text: messageEntry.line)
+        }
+        .onAppear {
+          proxy.scrollTo(game.messageEntries.count - 1, anchor: .bottom)
+        }
+        .onChange(of: game.messageEntries, perform: { _ in proxy.scrollTo(game.messageEntries.count - 1, anchor: .bottom)
+        })
+        .frame(maxWidth: .infinity, alignment: .center)
+        .background(Color.black)
+        .cornerRadius(Constants.General.roundRectCornerRadius)
+        .padding()
+      }
+    }
+  }
+}

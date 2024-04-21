@@ -1,0 +1,40 @@
+  mutating func repairDamage () -> Bool {
+    var roundedTimeToRepair = 0
+    timeToRepair = 0.0 //5720 D3=0:FOR I=1 TO 8:IF D(I)<0 THEN D3=D3+.1
+    for i in 1...8 {
+      if damage[i] < 0 {
+        timeToRepair += 0.1
+      }
+    }
+    if timeToRepair == 0 { //5760 NEXT I:IF D3=0 THEN 1990
+      messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: No repairs are needed."))
+    } else {
+      timeToRepair += damageFactor //5780 PRINT:D3=D3+D4:IF D3>=1 THEN D3=.9
+      if timeToRepair >= 1 {timeToRepair = 0.9}
+      messageEntries.append(MessageEntry(line: "Technicians standing by to effect repairs to your ship.")) //5810 PRINT"TECHNICIANS STANDING BY TO EFFECT REPAIRS TO YOUR SHIP;"
+      timeToRepair = 0.1 * Double(Int(100.00 * timeToRepair))
+      roundedTimeToRepair = Int(timeToRepair)
+      messageEntries.append(MessageEntry(line: "Estimated time to repair: \(roundedTimeToRepair) Stardates.")) //5820 PRINT"ESTIMATED TIME TO REPAIR:";.01*INT(100*D3);"STARDATES"
+      for i in 1...8 {
+        if damage[i] < 0 {
+          damage[i] = 0
+        }
+      }
+        currentStardate += roundedTimeToRepair
+      messageEntries.append(MessageEntry(line: "DEVICE              STATE OF REPAIR                        "))
+      messageEntries.append(MessageEntry(line: "-----------------------------------                        "))
+      var myString: String
+      for i in 1...8 {
+        myString = " " + systems[i]
+        myString = myString.padding(toLength: 25, withPad: " ", startingAt: 0)
+        myString = myString + String(damage[i])
+        myString = myString.padding(toLength: 60, withPad: " ", startingAt: 0)
+        messageEntries.append(MessageEntry(line: String(myString)))
+      }
+    }
+    if timeToRepair != 0 {
+      return true
+    } else {
+      return false
+    }
+  }

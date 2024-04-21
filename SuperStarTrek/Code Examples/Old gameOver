@@ -1,0 +1,33 @@
+  mutating func gameOver (reason: String) {
+    gameOver = true
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "*** GAME OVER ***"))
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "It is Stardate \(currentStardate)."))
+    switch reason {
+    case "Destroyed" :
+      displayBlankLine()
+    case "Starbase" :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "That does it, Captain! You are hearby relieved of command and sentenced to 99 Stardates of hard labour at Cygnus 12!!"))
+    case "Resigned" :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "There were \(klingonsRemaining) Klingon battle cruisers left at the end of your mission."))
+    case "Time" :
+      displayBlankLine()
+    case "Success" :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "Congratulations, Captain! The Last Klingon battle cruiser menacing the Federation has been destroyed."))
+      displayBlankLine()
+      //6400 PRINT"YOUR EFFICIENCY RATING IS";1000*(K7/(T-T0))^2:GOTO 6290
+      efficiency = Double((klingonsStarting)/(currentStardate - startingStardate))
+      efficiency = 1000 * (efficiency * efficiency)
+      messageEntries.append(MessageEntry(line: "Your Efficiency Rating is \(efficiency)"))
+      if basesRemaining > 0 {
+        messageEntries.append(MessageEntry(line: "The Federation is in need of a new Starship Commander for a similar mission. If you wish to volunteer press New Mission."))
+      }
+    default :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "Some other reason???"))
+    }
+  }

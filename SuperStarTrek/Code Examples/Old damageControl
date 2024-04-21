@@ -1,0 +1,19 @@
+  mutating func damageControl () {//5680 REM DAMAGE CONTROL
+    displayBlankLine()
+    if damage[6] >= 0 {
+      messageEntries.append(MessageEntry(line: "DEVICE              STATE OF REPAIR                        "))
+      messageEntries.append(MessageEntry(line: "-----------------------------------                        "))
+      var myString: String
+      for i in 1...8 {
+        myString = " " + systems[i]
+        myString = myString.padding(toLength: 25, withPad: " ", startingAt: 0)
+        myString = myString + String(format:"%.2f",damage[i])
+        myString = myString.padding(toLength: 60, withPad: " ", startingAt: 0)
+        messageEntries.append(MessageEntry(line: String(myString)))
+      }
+      displayBlankLine()
+    } else {
+      messageEntries.append(MessageEntry(line: "*** DAMAGE CONTROL REPORT NOT AVAILABLE ***"))
+    }
+    if condition == "DOCKED" {repairDamage()}
+  } //END OF damageControl

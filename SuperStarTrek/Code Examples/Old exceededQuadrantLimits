@@ -1,0 +1,114 @@
+  mutating func exceededQuadantLimits () {
+      //3490 REM EXCEEDED QUADRANT LIMITS
+      //3500 X=8*Q1+X+N*X1:Y=8*Q2+Y+N*X2:Q1=INT(X/8):Q2=INT(Y/8):S1=INT(X-Q1*8)
+     // 3550 S2=INT(Y-Q2*8):IF S1=0 THEN Q1=Q1-1:S1=8
+      x = 8 * Double(quadrantRow) + x
+      x = x + (Double(noOfSteps) * stepX)
+      y = 8 * Double(quadrantCol) + y
+      y = y + (Double(noOfSteps) * stepY)
+    quadrantRow = Int(x / 8)
+    quadrantCol = Int(y / 8)
+    sectorRow = Double(Int(x - Double(quadrantRow) * 8 ))
+    //sectorRow = x - Double(quadrantRow) * 8
+      sectorCol = Double(Int(y - Double(quadrantCol) * 8 ))
+    //sectorCol = y - Double(quadrantCol) * 8
+    if (sectorRow == 0) {
+      quadrantRow = quadrantRow - 1
+      sectorRow = 8
+    }
+    if (sectorCol == 0) {
+      quadrantCol = quadrantCol - 1
+      sectorCol = 8
+    }
+    crossingPerimeter = false
+    if quadrantRow < 1 {
+      crossingPerimeter = true
+      quadrantRow = 1
+      sectorRow = 1
+    }
+    if quadrantRow > 8 {
+      crossingPerimeter = true
+      quadrantRow = 8
+      sectorRow = 8
+    }
+    if quadrantCol < 1 {
+      crossingPerimeter = true
+      quadrantCol = 1
+      sectorCol = 1
+    }
+    if quadrantCol > 8 {
+      crossingPerimeter = true
+      quadrantCol = 8
+      sectorCol = 8
+    }
+    if crossingPerimeter {
+      messageEntries.append(MessageEntry(line: "LT. UHURA REPORTS: Message from Starfleet Command:"))
+      messageEntries.append(MessageEntry(line: "Permission to attempt crossing of Galactic Perimeter is hereby denied. Shut down your engines !"))
+      messageEntries.append(MessageEntry(line: "CHIEF ENGINEER SCOTT REPORTS:"))
+      messageEntries.append(MessageEntry(line: "Warp Engines shut down at Sector \(Int(sectorRow)),\(Int(sectorCol)) of Quadrant \(quadrantRow),\(quadrantCol)."))
+      if (currentStardate > startingStardate + daysLeft) {
+        gameOver(reason: "Time")
+      }
+    }
+    //Still in same quadrant?
+    if 8 * quadrantRow + quadrantCol != 8 * q4 + q5 {
+      //Print entering new Quadrant
+      //Get Quadrant name and region
+      if quadrantRow <= 4 {
+        eQuadrantName = gQuadrantNames[0][quadrantRow - 1]
+      } else {
+        eQuadrantName = gQuadrantNames[1][quadrantRow - 1]
+      }
+      if quadrantCol <= 4 {
+        eQuadrantName = eQuadrantName + gSectorNames[quadrantCol - 1 ]
+      } else {
+        eQuadrantName = eQuadrantName + gSectorNames[quadrantCol - 5 ]
+      }
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "Now entering Galactic Quadrant \(eQuadrantName) . . ."))
+      //Get contents of Quadrant
+      damageFactor = 0.5 * Double.random(in: 0.01...1)
+      quadrant = Array(repeating: Array(repeating: "   ", count: 9), count: 9)
+      klingonsInQuadrant = galaxy[quadrantRow][quadrantCol]/100
+      temp = galaxy[quadrantRow][quadrantCol] - (klingonsInQuadrant * 100)
+      basesInQuadrant = temp/10
+      starsInQuadrant = temp - (basesInQuadrant * 10)
+      //Set Condition
+      if klingonsInQuadrant > 0 {
+        messageEntries.append(MessageEntry(line: "*** COMBAT AREA - CONDITION RED ***"))
+        condition = "RED"
+        if shields < 200 {
+          messageEntries.append(MessageEntry(line: "*** SHIELDS DANGEROUSLY LOW ***"))
+        }
+      }
+      //Possibly adding to quadrant when it hasn't changed?
+        if debug {print("\(sectorRow) \(sectorCol)")}
+      quadrant[Int(sectorRow)][Int(sectorCol)] = "<*>"
+      if klingonsInQuadrant > 0 {
+        for i in 1...klingonsInQuadrant {
+          let coordinates = findEmptyPlaceinQuadrant()
+          let R1 = coordinates.y
+          let R2 = coordinates.x
+          quadrant[R1][R2] = "+K+"
+          klingons[i][1] = R1
+          klingons[i][2] = R2
+            klingons[i][3] = Int(Constants.Game.originalKlingonEnergy * (0.5 * Double.random(in: 0.01..<1.0)))
+        }
+      }
+      if basesInQuadrant > 0 {
+        let coordinates = findEmptyPlaceinQuadrant()
+        let R1 = coordinates.y
+        let R2 = coordinates.x
+        baseRow = R1
+        baseCol = R2
+        quadrant[R1][R2] = ">!<"
+      }
+      for _ in 1...starsInQuadrant {
+        let coordinates = findEmptyPlaceinQuadrant()
+        let R1 = coordinates.y
+        let R2 = coordinates.x
+        quadrant[R1][R2] = " * "
+      }
+      checkIfDocked()
+    }
+  }

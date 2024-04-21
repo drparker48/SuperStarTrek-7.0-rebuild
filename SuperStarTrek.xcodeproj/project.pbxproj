@@ -7,38 +7,61 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B20E2A12B29F2D3004161AD /* TOSLua in Resources */ = {isa = PBXBuildFile; fileRef = 3B20E2A02B29F2D3004161AD /* TOSLua */; };
+		3B39E8D12BAF3DD1009F374D /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B39E8D02BAF3DD1009F374D /* SplashView.swift */; };
 		3B4E91C4299D507600F6EBA6 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4E91C3299D507600F6EBA6 /* Game.swift */; };
-		3BC84828299BE981008AE697 /* SuperStarTrekApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84827299BE981008AE697 /* SuperStarTrekApp.swift */; };
-		3BC8482A299BE981008AE697 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84829299BE981008AE697 /* ContentView.swift */; };
+		3B66085D2BBDAAF20059FA0D /* Old Middle View in Resources */ = {isa = PBXBuildFile; fileRef = 3B66085C2BBDAAF20059FA0D /* Old Middle View */; };
+		3B8079BC2BA874E00048160B /* Picker for 2D Grid in Resources */ = {isa = PBXBuildFile; fileRef = 3B8079BB2BA874E00048160B /* Picker for 2D Grid */; };
+		3B8079D82BA87C280048160B /* Impulse in Resources */ = {isa = PBXBuildFile; fileRef = 3B8079D72BA87C280048160B /* Impulse */; };
+		3B8A45B22BAF06A400012A1B /* Old courseControl in Resources */ = {isa = PBXBuildFile; fileRef = 3B8A45B12BAF06A400012A1B /* Old courseControl */; };
+		3B8A45B42BAF1F2B00012A1B /* Old gameOver in Resources */ = {isa = PBXBuildFile; fileRef = 3B8A45B32BAF1F2B00012A1B /* Old gameOver */; };
+		3B8A45B62BAF1F8200012A1B /* Old damageControl in Resources */ = {isa = PBXBuildFile; fileRef = 3B8A45B52BAF1F8200012A1B /* Old damageControl */; };
+		3B8A45B82BAF1FBF00012A1B /* Old repairDamage in Resources */ = {isa = PBXBuildFile; fileRef = 3B8A45B72BAF1FBF00012A1B /* Old repairDamage */; };
+		3B8A45BA2BAF1FFA00012A1B /* Old shieldControl in Resources */ = {isa = PBXBuildFile; fileRef = 3B8A45B92BAF1FFA00012A1B /* Old shieldControl */; };
+		3B8A45BC2BAF205E00012A1B /* Old endOfMovement in Resources */ = {isa = PBXBuildFile; fileRef = 3B8A45BB2BAF205E00012A1B /* Old endOfMovement */; };
+		3B8A45BE2BAF209D00012A1B /* Old exceededQuadrantLimits in Resources */ = {isa = PBXBuildFile; fileRef = 3B8A45BD2BAF209D00012A1B /* Old exceededQuadrantLimits */; };
+		3BAFC80C2B24CFE6006263D9 /* SuperStarTrekApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAFC80B2B24CFE6006263D9 /* SuperStarTrekApp.swift */; };
+		3BAFC80E2B24D003006263D9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAFC80D2B24D003006263D9 /* ContentView.swift */; };
+		3BAFC8102B24D017006263D9 /* MainScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAFC80F2B24D017006263D9 /* MainScreenView.swift */; };
+		3BAFC8122B24D02F006263D9 /* ControlViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAFC8112B24D02F006263D9 /* ControlViews.swift */; };
+		3BAFC8142B24D03F006263D9 /* TextViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAFC8132B24D03F006263D9 /* TextViews.swift */; };
+		3BAFC8162B24D04C006263D9 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAFC8152B24D04C006263D9 /* Shapes.swift */; };
+		3BAFC8182B24D05C006263D9 /* AlertViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAFC8172B24D05C006263D9 /* AlertViews.swift */; };
+		3BAFC81A2B24D07C006263D9 /* Full BASIC Listing.md in Resources */ = {isa = PBXBuildFile; fileRef = 3BAFC8192B24D07C006263D9 /* Full BASIC Listing.md */; };
 		3BC8482C299BE983008AE697 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3BC8482B299BE983008AE697 /* Assets.xcassets */; };
 		3BC8482F299BE983008AE697 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3BC8482E299BE983008AE697 /* Preview Assets.xcassets */; };
-		3BC84839299BEB8D008AE697 /* MainScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84838299BEB8D008AE697 /* MainScreenView.swift */; };
-		3BC8483B299BF028008AE697 /* ControlViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC8483A299BF028008AE697 /* ControlViews.swift */; };
-		3BC8483D299BF097008AE697 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC8483C299BF097008AE697 /* Shapes.swift */; };
 		3BC84840299BF1CD008AE697 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC8483F299BF1CD008AE697 /* Constants.swift */; };
-		3BC84842299BFB64008AE697 /* TextViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC84841299BFB64008AE697 /* TextViews.swift */; };
-		3BF2832D29DF37F80095E012 /* AlertViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF2832C29DF37F80095E012 /* AlertViews.swift */; };
-		3BF2833129E06C3E0095E012 /* Help.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF2833029E06C3E0095E012 /* Help.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3B0F576C29FD817000A46CD6 /* DirectionDistance .md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "DirectionDistance .md"; sourceTree = "<group>"; };
+		3B20E2A02B29F2D3004161AD /* TOSLua */ = {isa = PBXFileReference; lastKnownFileType = text; path = TOSLua; sourceTree = "<group>"; };
 		3B315A6729FD327C001D5D75 /* emabolo Swift coversion.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "emabolo Swift coversion.md"; sourceTree = "<group>"; };
+		3B39E8D02BAF3DD1009F374D /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		3B4E91C3299D507600F6EBA6 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
 		3B61FA262A06B442005BD464 /* Draw Enterprise.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Draw Enterprise.md"; sourceTree = "<group>"; };
-		3B6578A129BE434D00DF6410 /* Full BASIC Listing.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Full BASIC Listing.md"; sourceTree = "<group>"; };
+		3B66085C2BBDAAF20059FA0D /* Old Middle View */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old Middle View"; sourceTree = "<group>"; };
+		3B8079BB2BA874E00048160B /* Picker for 2D Grid */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Picker for 2D Grid"; sourceTree = "<group>"; };
+		3B8079D72BA87C280048160B /* Impulse */ = {isa = PBXFileReference; lastKnownFileType = text; path = Impulse; sourceTree = "<group>"; };
+		3B8A45B12BAF06A400012A1B /* Old courseControl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old courseControl"; sourceTree = "<group>"; };
+		3B8A45B32BAF1F2B00012A1B /* Old gameOver */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old gameOver"; sourceTree = "<group>"; };
+		3B8A45B52BAF1F8200012A1B /* Old damageControl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old damageControl"; sourceTree = "<group>"; };
+		3B8A45B72BAF1FBF00012A1B /* Old repairDamage */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old repairDamage"; sourceTree = "<group>"; };
+		3B8A45B92BAF1FFA00012A1B /* Old shieldControl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old shieldControl"; sourceTree = "<group>"; };
+		3B8A45BB2BAF205E00012A1B /* Old endOfMovement */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old endOfMovement"; sourceTree = "<group>"; };
+		3B8A45BD2BAF209D00012A1B /* Old exceededQuadrantLimits */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Old exceededQuadrantLimits"; sourceTree = "<group>"; };
+		3BAFC80B2B24CFE6006263D9 /* SuperStarTrekApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SuperStarTrekApp.swift; path = "../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/SuperStarTrekApp.swift"; sourceTree = "<group>"; };
+		3BAFC80D2B24D003006263D9 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "../../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/ContentView.swift"; sourceTree = "<group>"; };
+		3BAFC80F2B24D017006263D9 /* MainScreenView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainScreenView.swift; path = "../../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/MainScreenView.swift"; sourceTree = "<group>"; };
+		3BAFC8112B24D02F006263D9 /* ControlViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ControlViews.swift; path = "../../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/ControlViews.swift"; sourceTree = "<group>"; };
+		3BAFC8132B24D03F006263D9 /* TextViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TextViews.swift; path = "../../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/TextViews.swift"; sourceTree = "<group>"; };
+		3BAFC8152B24D04C006263D9 /* Shapes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Shapes.swift; path = "../../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/Shapes.swift"; sourceTree = "<group>"; };
+		3BAFC8172B24D05C006263D9 /* AlertViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AlertViews.swift; path = "../../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/AlertViews.swift"; sourceTree = "<group>"; };
+		3BAFC8192B24D07C006263D9 /* Full BASIC Listing.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = "Full BASIC Listing.md"; path = "../../../../../Library/Mobile Documents/iCloud~com~apple~Playgrounds/Documents/Super Star Trek 2023.11 copy.swiftpm/Resources/Full BASIC Listing.md"; sourceTree = "<group>"; };
 		3BC84824299BE981008AE697 /* SuperStarTrek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SuperStarTrek.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3BC84827299BE981008AE697 /* SuperStarTrekApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperStarTrekApp.swift; sourceTree = "<group>"; };
-		3BC84829299BE981008AE697 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		3BC8482B299BE983008AE697 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3BC8482E299BE983008AE697 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		3BC84838299BEB8D008AE697 /* MainScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreenView.swift; sourceTree = "<group>"; };
-		3BC8483A299BF028008AE697 /* ControlViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlViews.swift; sourceTree = "<group>"; };
-		3BC8483C299BF097008AE697 /* Shapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shapes.swift; sourceTree = "<group>"; };
 		3BC8483F299BF1CD008AE697 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		3BC84841299BFB64008AE697 /* TextViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextViews.swift; sourceTree = "<group>"; };
-		3BF2832C29DF37F80095E012 /* AlertViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertViews.swift; sourceTree = "<group>"; };
-		3BF2833029E06C3E0095E012 /* Help.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Help.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,11 +79,29 @@
 			isa = PBXGroup;
 			children = (
 				3B315A6729FD327C001D5D75 /* emabolo Swift coversion.md */,
-				3B6578A129BE434D00DF6410 /* Full BASIC Listing.md */,
 				3B0F576C29FD817000A46CD6 /* DirectionDistance .md */,
 				3B61FA262A06B442005BD464 /* Draw Enterprise.md */,
+				3BAFC8192B24D07C006263D9 /* Full BASIC Listing.md */,
+				3B20E2A02B29F2D3004161AD /* TOSLua */,
 			);
 			path = "Original Program";
+			sourceTree = "<group>";
+		};
+		3B9AD8C52BA5C18E0096C116 /* Code Examples */ = {
+			isa = PBXGroup;
+			children = (
+				3B8079BB2BA874E00048160B /* Picker for 2D Grid */,
+				3B8079D72BA87C280048160B /* Impulse */,
+				3B8A45B12BAF06A400012A1B /* Old courseControl */,
+				3B8A45B32BAF1F2B00012A1B /* Old gameOver */,
+				3B8A45B52BAF1F8200012A1B /* Old damageControl */,
+				3B8A45B72BAF1FBF00012A1B /* Old repairDamage */,
+				3B8A45B92BAF1FFA00012A1B /* Old shieldControl */,
+				3B8A45BB2BAF205E00012A1B /* Old endOfMovement */,
+				3B8A45BD2BAF209D00012A1B /* Old exceededQuadrantLimits */,
+				3B66085C2BBDAAF20059FA0D /* Old Middle View */,
+			);
+			path = "Code Examples";
 			sourceTree = "<group>";
 		};
 		3BC8481B299BE981008AE697 = {
@@ -82,11 +123,12 @@
 		3BC84826299BE981008AE697 /* SuperStarTrek */ = {
 			isa = PBXGroup;
 			children = (
-				3BC84827299BE981008AE697 /* SuperStarTrekApp.swift */,
+				3BAFC80B2B24CFE6006263D9 /* SuperStarTrekApp.swift */,
 				3BC8482B299BE983008AE697 /* Assets.xcassets */,
 				3BC84835299BEA14008AE697 /* Views */,
 				3BC8483E299BF197008AE697 /* Models */,
 				3BC8482D299BE983008AE697 /* Preview Content */,
+				3B9AD8C52BA5C18E0096C116 /* Code Examples */,
 				3B65789E29BE42D600DF6410 /* Original Program */,
 			);
 			path = SuperStarTrek;
@@ -103,12 +145,13 @@
 		3BC84835299BEA14008AE697 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				3BC84829299BE981008AE697 /* ContentView.swift */,
-				3BC84838299BEB8D008AE697 /* MainScreenView.swift */,
-				3BC8483A299BF028008AE697 /* ControlViews.swift */,
-				3BC84841299BFB64008AE697 /* TextViews.swift */,
-				3BC8483C299BF097008AE697 /* Shapes.swift */,
-				3BF2832C29DF37F80095E012 /* AlertViews.swift */,
+				3BAFC80D2B24D003006263D9 /* ContentView.swift */,
+				3BAFC80F2B24D017006263D9 /* MainScreenView.swift */,
+				3BAFC8112B24D02F006263D9 /* ControlViews.swift */,
+				3BAFC8132B24D03F006263D9 /* TextViews.swift */,
+				3BAFC8152B24D04C006263D9 /* Shapes.swift */,
+				3BAFC8172B24D05C006263D9 /* AlertViews.swift */,
+				3B39E8D02BAF3DD1009F374D /* SplashView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -118,7 +161,6 @@
 			children = (
 				3BC8483F299BF1CD008AE697 /* Constants.swift */,
 				3B4E91C3299D507600F6EBA6 /* Game.swift */,
-				3BF2833029E06C3E0095E012 /* Help.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -181,7 +223,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B8079D82BA87C280048160B /* Impulse in Resources */,
+				3B8079BC2BA874E00048160B /* Picker for 2D Grid in Resources */,
+				3B8A45BA2BAF1FFA00012A1B /* Old shieldControl in Resources */,
+				3B8A45BE2BAF209D00012A1B /* Old exceededQuadrantLimits in Resources */,
+				3B8A45B62BAF1F8200012A1B /* Old damageControl in Resources */,
 				3BC8482F299BE983008AE697 /* Preview Assets.xcassets in Resources */,
+				3B8A45B42BAF1F2B00012A1B /* Old gameOver in Resources */,
+				3BAFC81A2B24D07C006263D9 /* Full BASIC Listing.md in Resources */,
+				3B8A45BC2BAF205E00012A1B /* Old endOfMovement in Resources */,
+				3B8A45B22BAF06A400012A1B /* Old courseControl in Resources */,
+				3B66085D2BBDAAF20059FA0D /* Old Middle View in Resources */,
+				3B8A45B82BAF1FBF00012A1B /* Old repairDamage in Resources */,
+				3B20E2A12B29F2D3004161AD /* TOSLua in Resources */,
 				3BC8482C299BE983008AE697 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -193,16 +247,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3BC8483B299BF028008AE697 /* ControlViews.swift in Sources */,
-				3BC8482A299BE981008AE697 /* ContentView.swift in Sources */,
-				3BC84828299BE981008AE697 /* SuperStarTrekApp.swift in Sources */,
 				3BC84840299BF1CD008AE697 /* Constants.swift in Sources */,
-				3BF2833129E06C3E0095E012 /* Help.swift in Sources */,
-				3BC84842299BFB64008AE697 /* TextViews.swift in Sources */,
-				3BC84839299BEB8D008AE697 /* MainScreenView.swift in Sources */,
-				3BC8483D299BF097008AE697 /* Shapes.swift in Sources */,
+				3BAFC80C2B24CFE6006263D9 /* SuperStarTrekApp.swift in Sources */,
+				3BAFC8162B24D04C006263D9 /* Shapes.swift in Sources */,
+				3BAFC8142B24D03F006263D9 /* TextViews.swift in Sources */,
+				3BAFC8122B24D02F006263D9 /* ControlViews.swift in Sources */,
+				3BAFC8102B24D017006263D9 /* MainScreenView.swift in Sources */,
+				3BAFC80E2B24D003006263D9 /* ContentView.swift in Sources */,
+				3B39E8D12BAF3DD1009F374D /* SplashView.swift in Sources */,
 				3B4E91C4299D507600F6EBA6 /* Game.swift in Sources */,
-				3BF2832D29DF37F80095E012 /* AlertViews.swift in Sources */,
+				3BAFC8182B24D05C006263D9 /* AlertViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

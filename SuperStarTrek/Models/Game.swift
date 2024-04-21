@@ -8,19 +8,9 @@
 import Foundation
 import SwiftUI
 
-var klingonsInQuadrant = 0//K3
-var enterpriseCondition = "GREEN" //C$
-var damage = Array(repeating: 0.00, count: 9) //670 FORI=1TO8:D(I)=0:NEXTI
-var enterpriseDestroyed = false
-var enterpriseEnergy = 3000 //E
-var enterpriseOriginalEnergy = 0 //E0
-var enterpriseOriginalStardate = 0 //T0
-var enterpriseQuadrantRow = 0 //Q1
-var enterpriseQuadrantCol = 0 //Q2
-var enterpriseSectorRow = 0 //S1
-var enterpriseSectorCol = 0 //S2
-var enterpriseShields = 0 //S
-var input = ""
+var eQuadrantName = "" //G2$
+let gQuadrantNames = [["Antares","Rigel","Procyon","Vega","Canopus","Altair","Sagittarius","Pollux"], ["Sirius","Deneb","Capella","Betelgeuse","Aldebaran","Regulus","Arcturus","Spica"]] //Not stored in original BASIC program
+let gSectorNames = [" I"," II"," III"," IV"] //Not stored in original BASIC program
 
 struct MessageEntry: Equatable, Identifiable {
   let line: String
@@ -28,250 +18,583 @@ struct MessageEntry: Equatable, Identifiable {
 }
 
 struct Game {
-  var A$ = "   "
-  var basesRemaining = 0 //B9
-  var basesInQuadrant = 0 //B3
-  var baseRow = 0 //B4
-  var baseCol = 0 //B5
-  var C = Array(repeating: Array(repeating: 0.0, count: 3), count: 10)
-  var crossingPerimeter = false
-  var damageFactor = 0.0 //D4
-  var debug = true
-  var docked = false
-  var efficiency = 0.0
-  var enterpriseDaysLeft = 25 + Int.random(in:1...10) //T9
-  var enterpriseStardate = (Int.random(in:1...20)+20)*100 //T
-  var enterpriseTorpedoes = 10 //P
-  var enterpriseQuadrantName = "" //G2$
-  var explored = Array(repeating: Array(repeating: 0, count: 9), count: 9)
-  var galaxy = Array(repeating: Array(repeating: 0, count: 9), count: 9)
-  var galaxyQuadrantNames = [["Antares","Rigel","Procyon","Vega","Canopus","Altair","Sagittarius","Pollux"], ["Sirius","Deneb","Capella","Betelgeuse","Aldebaran","Regulus","Arcturus","Spica"]]
-  var galaxySectorNames = [" I"," II"," III"," IV"]
-  var gameStarted = false
-  var klingons = Array(repeating: Array(repeating: 0, count: 4), count: 4) //K(3,3)
-  var klingonsRemaining = 0 //K9
-  var klingonsStarting = 0 //K7
-  var lrs = [0,0,0,0,0,0,0,0,0] //Used in building Long Range Scan, Galactic Record
-  var messageEntries: [MessageEntry] = []
-  var maxWarp = "8.0"
-  var noOfSteps = 0
-  var q4 = 0
-  var q5 = 0
-  var quadrant = Array(repeating: Array(repeating: "   ", count: 9), count: 9)// To replace Q$
-  var R1 = 0
-  var R2 = 0
-  var S8 = 0
-  var S9 = 200.0
-  var starsInQuadrant = 0 //S3
-  var stepX = 0.0
-  var stepY = 0.0
-  var systems = ["EMPTY","Warp Engines","Short Range Sensors","Long Range Sensors","Phaser Control","Photon Tubes","Damage Control","Shield Control","Library Computer"]
-  var t8 = 0.0
-  var temp = 0 //Temporary integer
-  var temp$ = ""
-  var x = 0
-  var x5 = false
-  var y = 0
-  var Z1 = 0
-  var Z2 = 0
-  var Z3 = false
+  var basesRemaining = 0 //B9 starbases
+  var basesInQuadrant = 0
   
-  mutating func startGame () {
-    let enterpriseDamageFactor = 0.5 * Double.random(in:0.1..<1.0)//D4=.5*RND(1)
+  let condition = ["GREEN","YELLOW","RED"]
+  
+  var damageFactor = 0.00
+  var daysLeft: Int = 25 + Int.random(in:1...10) //T9 Set to 25 + Int.random(in:1...10)
+  var debug = true //To cause debug messages to be printed to the console
+  var docked = false // D0 docked flag (set to 0 = false at start) to indicate whether Enterprise is docked or not
+  
+  var energyRequired = 0 //N
+  var enterpriseCondition = "GREEN" //C$
+  var enterpriseDamage = Array(repeating: 1.00, count: 10) //Set operating efficiency at 1.00 (equivalent to 100%) for each of 9 systems = D(9)
+  var enterpriseDestroyed: Bool = false // Flag to indicate Enterprise has been destroyed
+  var enterpriseEnergy = Constants.Game.originalEnergy //E initial energy = 3000
+  var enterpriseShields = 0 //S shields
+  var enterpriseStardate = Constants.Game.originalStardate + Int.random(in:1...20) * 100//T current stardate from 2,000 to 4,000
+  var enterpriseSystemsDamaged = false
+  var enterpriseTorpedoes = Constants.Game.originalTorpedoes //P number of torpedoes
+  var explored = [[Int]](repeating: [Int](repeating: 0, count: 9), count: 9) //Z() discovered galaxy
+  
+  var galaxy = [[Int]](repeating: [Int](repeating: 0, count: 9), count: 9) //G() undiscovered galaxy
+  var gameOver = false
+  var gameStarted = false
+  
+  var klingons = [[Int]](repeating: [Int](repeating: 0, count: 4), count: 4) //K() klingon data for current quadrant
+  var klingonsInQuadrant = 0
+  var klingonsRemaining = 0 //K9 klingons
+  var klingonsStarting = 0 //K7
+  
+  var romulans = [[Int]](repeating: [Int](repeating: 0, count: 6), count: 4) //Romulan data for galaxy
+  // [0] and [1] quadrant coordinates [2] and [3] sector coordinates [4] cloaked 0 = false 1=true [5] energy 0-400
+  var romulansInQuadrant = 0
+  var romulansRemaining = 0
+  var romulansStarting = 0
+  var romulanVessel = 0 //Romulan vessel number
+  var cloaked = 1 // cloaked flag (set to 1 = true at start) to indicate whether Romulan is cloaked or not
+  
+  var lrs = [0,0,0,0,0,0,0,0,0] //Used in building Long Range ", Galactic Record
+  
+  //var maxWarp = "8.0" //Normal maxiumum Warp Factor
+  var messageEntries: [MessageEntry] = [] //Stores output screen
+  
+  var quadrant = Array(repeating: Array(repeating: "   ", count: 9), count: 9)//Q$
+  var quadrantCoordinates = (0,0)
+  
+  var sectorCoordinates = (0,0)
+  let systems = ["EMPTY","Impulse Engines","Warp Engines","Short Range Sensors","Long Range Sensors","Phaser Control","Photon Tubes","Damage Control","Shield Control","Library Computer"]
+  var starbase = Array(repeating: Array(repeating: 0, count: 6), count: 7)
+  // [0] = quadrantRow (1-8), [1] = quadrantCol (1-8), [2] = condition (1-3), [3] = efficiency (0-100), [4] = energy, [5} = torpedoes
+  var starsInQuadrant = 0
+  var startingStardate = 0
+  
+  var temp = 0
+  var temp$ = "" //Used in building Long Range ", Galactic Record
+  var timeToRepair = 0
+  
+  // MARK: Game Control Functions
+  mutating func startGame() {
+    if debug {print("startGame()")}
     var isAre = "is"
     var starbases = "Starbase"
     
-    //Initialise Enterprise position
-    enterpriseQuadrantRow = Int.random(in:1...8) //Q1
-    enterpriseQuadrantCol = Int.random(in:1...8) //Q2
-    enterpriseSectorRow = Int.random(in:1...8) //S1
-    enterpriseSectorCol = Int.random(in:1...8) //S2
+    // Set up initial values
     
-    //Set up vectors for movement
-    C[1][1] = 0.0; C[1][2] = 1.0 // 1 = on same row one space to right
-    C[2][1] = -1.0;C[2][2] = 1.0 // 2 = on row above one space to right
-    C[3][1] = -1.0;C[3][2] = 0.0 // 3 = on row above
-    C[4][1] = -1.0;C[4][2] = -1.0// 4 = on row above one space to left
-    C[5][1] = 0.0; C[5][2] = -1.0// 5 = on same row one space to left
-    C[6][1] = 1.0; C[6][2] = -1.0// 6 = one row below one space to left
-    C[7][1] = 1.0; C[7][2] = 0.0 // 7 = one row below
-    C[8][1] = 1.0; C[8][2] = 1.0 // 8 = one row below one space to right
-    C[9][1] = 0.0; C[9][2] = 1.0 // 9 = on same row one space to right
-    
-    //Reset number of Klingons and Starbases
-    klingonsRemaining = 0
-    basesRemaining = 0 //B9
-    
-    //Clear Short Range Scan
+    // Clear arrays
+    enterpriseDamage = Array(repeating: 1.00, count: 10) // 100%
+    for index in 0..<enterpriseDamage.count {
+      enterpriseDamage[index] = 1.00
+    }
+    messageEntries.removeAll()
+    klingons = [[Int]](repeating: [Int](repeating: 0, count: 4), count: 4)
+    romulans = [[Int]](repeating: [Int](repeating: 0, count: 6), count: 4)
     quadrant = Array(repeating: Array(repeating: "   ", count: 9), count: 9)
     
-    //Populate the galaxy with Klingons, Starbases and stars
+    // Game status
+    gameStarted = false
+    gameOver = false
+    // Consider changing daysLeft to 25 + Int.random(in:1...klingonsStarting) to increase or reduce the number of days available
+    daysLeft = 25 + Int.random(in:1...10) //T9 Set to 25 + Int.random(in:1...10)
+    if debug {print("Starting Stardate: \(startingStardate) Enterprise Stardate: \(enterpriseStardate)")}
+    
+    // Enterprise status
+    enterpriseCondition = "GREEN" //C$
+    docked = false // D0 docked flag (set to 0 = false at start) to indicate whether Enterprise is docked or not
+    enterpriseEnergy = Constants.Game.originalEnergy //E initial energy = 3000
+    enterpriseShields = 0 //S shields
+    enterpriseStardate = Constants.Game.originalStardate + Int.random(in:1...20) * 100//T current stardate from 2,000 to 4,000
+    startingStardate = enterpriseStardate
+    enterpriseSystemsDamaged = false
+    enterpriseTorpedoes = Constants.Game.originalTorpedoes //P number of torpedoes
+    
+    // Galaxy information
+    explored = [[Int]](repeating: [Int](repeating: 0, count: 9), count: 9)
+    galaxy = [[Int]](repeating: [Int](repeating: 0, count: 9), count: 9)
+    timeToRepair = 0
+    
+    // Position Enterprise at random location
+    sectorCoordinates.0 = Int.random(in:1...8)//S1
+    sectorCoordinates.1 = Int.random(in:1...8) //S2
+    quadrantCoordinates.0 = Int.random(in:1...8) //Q1
+    quadrantCoordinates.1 = Int.random(in:1...8) //Q2
+    if debug {print("Enterprise randomly located in Quadrant \(quadrantCoordinates.0),\(quadrantCoordinates.1) Sector \(sectorCoordinates.0),\(sectorCoordinates.1)")}
+    
+    // Set up galaxy
+    // Klingons
+    klingonsStarting = 0 //K7
+    klingonsRemaining = 0 //K9 klingons
+    
+    // Romulans
+    romulansStarting = 0 //
+    romulansRemaining = 0 //
+    
+    // Starbases
+    basesRemaining = 0 //B9 starbases
+    
     for i in 1...8 {
       for j in 1...8 {
-        klingonsInQuadrant = 0
-        galaxy[i][j] = 0
-        R1 = Int.random(in:1...99)
-        if R1 > 98 {
-          klingonsInQuadrant = 3
-          klingonsRemaining += 3
-        } else if R1 > 95 {
-          klingonsInQuadrant = 2
-          klingonsRemaining += 2
-        } else if R1 > 80 {
-          klingonsInQuadrant = 1
-          klingonsRemaining += 1
+          klingonsInQuadrant = 0 //Start with 0 Klingons
+          basesInQuadrant = 0// and no Starbases
+          romulansInQuadrant = 0 // and no Romulans
+        if debug {print("i = \(i), j = \(j)")}
+          galaxy[i][j] = 0 //Clear unknown galaxy quadrant
+          explored[i][j] = 0 //Clear known galaxy quadrant
+          switch Int.random(in:1...99) {
+          case 98...99 : //Add 3 Klingons
+              klingonsInQuadrant = 3
+              klingonsRemaining += 3
+          case 95..<98: //Add 2 Klingons
+              klingonsInQuadrant = 2
+              klingonsRemaining += 2
+          case 88..<95: //Add 1 Klingon
+              klingonsInQuadrant = 1
+              klingonsRemaining += 1
+          default: //Add no Klingons
+              klingonsInQuadrant = 0
+          }
+        if (i == 1 && j <= 4 || i == 8 && j >= 5)   && Int.random(in:1...99) > 94 { //Add 1 Romulan
+          romulansInQuadrant = 1
+          romulansRemaining += 1
+          romulans[romulansRemaining][0] = i // Quadrant coordinates
+          romulans[romulansRemaining][1] = j // Quadrant coordinates
+          romulans[romulansRemaining][2] = 0 // Sector coordinates assigned when enetering the quadrant
+          romulans[romulansRemaining][3] = 0 // Sector coordinates assigned when enetering the quadrant
+          romulans[romulansRemaining][5] = Int(Double(Constants.Game.originalRomulanEnergy) * (Double.random(in: 0.50..<1.50))) // Energy
         }
-        klingonsStarting = klingonsRemaining
-        basesInQuadrant = 0
-        if Int.random(in: 1...99) > 96 {
-          basesInQuadrant = 1
-          basesRemaining += 1
-        }
-        starsInQuadrant = Int.random(in:1...8)
-        galaxy[i][j] = klingonsInQuadrant * 100 + basesInQuadrant * 10 + starsInQuadrant
+          if Int.random(in: 1...99) > 96 && basesRemaining <= 5 { //Add 1 Starbase
+              basesInQuadrant = 1
+              basesRemaining += 1
+              starbase[basesRemaining][0] = i
+              starbase[basesRemaining][1] = j
+              starbase[basesRemaining][2] = 0 // Condition GREEN
+              starbase[basesRemaining][3] = Int.random(in:90..<100)
+              starbase[basesRemaining][4] = 10000
+              starbase[basesRemaining][5] = 200
+              }
+          starsInQuadrant = Int.random(in:1...8) //Add between 1 and 8 Stars
+          galaxy[i][j] = romulansInQuadrant * 1000 + klingonsInQuadrant * 100 + basesInQuadrant * 10 + starsInQuadrant
+          if debug {print("Galaxy Quadrant \(i),\(j) has \(klingonsInQuadrant) Klingon, \(romulansInQuadrant) Romulan, \(basesInQuadrant) Starbase and \(starsInQuadrant) Star")}
+      }
+      if klingonsRemaining > daysLeft {
+        daysLeft = klingonsRemaining + 1
       }
     }
-    if basesRemaining == 0 {//If there are no Starbases, add one in the cuurent Enterpruse Quadrant then put in 2 Klingons and 1 Starbase and reposition Enterprise
-      if galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] < 200 {
-        galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] += 100
+    if basesRemaining == 0 { //If there are no Starbases in the galaxy
+      if galaxy[quadrantCoordinates.0][quadrantCoordinates.1] < 200 { //If there are less than 2 Klingons in the Enterprise Quadrant then add 1
+        galaxy[quadrantCoordinates.0][quadrantCoordinates.1] += 100
         klingonsRemaining += 1
       }
-      basesRemaining = 1
-      galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] += 10
-      enterpriseQuadrantRow = Int.random(in:1...8)
-      enterpriseQuadrantCol = Int.random(in:1...8)
+      basesRemaining = 1 //Add a Starbase in the Enterprise Quadrant
+      starbase[basesRemaining][0] = quadrantCoordinates.0
+      starbase[basesRemaining][1] = quadrantCoordinates.1
+      starbase[basesRemaining][2] = 0 // Condition GREEN
+      starbase[basesRemaining][3] = Int.random(in:90..<100)
+      starbase[basesRemaining][4] = 10000
+      starbase[basesRemaining][5] = 200
+      galaxy[quadrantCoordinates.0][quadrantCoordinates.1] += 10
+      quadrantCoordinates.0 = Int.random(in:1...8) // Reposition the Enterprise
+      quadrantCoordinates.1 = Int.random(in:1...8)
+      sectorCoordinates.0 = Int.random(in:1...8)//S1
+      sectorCoordinates.1 = Int.random(in:1...8) //S2
+      if debug {print("Enterprise repositioned in Quadrant \(quadrantCoordinates.0),\(quadrantCoordinates.1) Sector \(sectorCoordinates.0),\(sectorCoordinates.1)")}
     }
+    klingonsStarting = klingonsRemaining
+    romulansStarting = romulansRemaining
+    if debug {print("Klingons = \(klingonsRemaining), Romulans = \(romulansRemaining), Starbases = \(basesRemaining)")}
+    quadrant = Array(repeating: Array(repeating: "   ", count: 9), count: 9)
+    // Display mission
     if (basesRemaining != 1) {//Set up correct syntax for Starbase quantity
       isAre = "are"
       starbases = "Starbases"
     }
-    
-    //State mission
     messageEntries.append(MessageEntry(line: "               THE USS ENTERPRISE --- NCC-1701              "))
     displayBlankLine()
+    messageEntries.append(MessageEntry(line: "It is Stardate \(enterpriseStardate). Your mission is to destroy the \(klingonsRemaining) Klingon warships that have invaded the Galaxy before they can attack Federation Headquarters on Stardate \(enterpriseStardate + daysLeft)."))
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "This gives you \(daysLeft) days to complete your mission. There " + isAre + " \(basesRemaining) " + starbases + " in the Galaxy for resupplying your ship."))
+    if romulansStarting > 0 {
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "Powerful Romulan Birds-of-Prey have appeared on the edges of the Galaxy in the Arcturus or Spica regions. They are undetectable due to their cloaking devices unless materialising to attack."))
+    }
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "Press Resign Command to reject the mission, New Mission for a different mission or use the buttons below to take command. "))
+    displayBlankLine()
+    // Enter quadrant
+    enterNewQuadrant()
+    // Identify condition and warn accordingly
+    getCommand()
+  }
+  mutating func displayBlankLine() {
+    if debug {print("displayBlankLine()")}
+    messageEntries.append(MessageEntry(line: "                                                            "))
+  }
+  mutating func getCommand () {
+    if debug {print("getCommand()")}
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "SELECT COMMAND:"))
+  }
+  mutating func endGame(reason: String){
+    if debug {print("endGame() - \(reason)")}
+    var efficiency = 0.0
+    gameOver = true
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "*** GAME OVER ***"))
+    displayBlankLine()
     messageEntries.append(MessageEntry(line: "It is Stardate \(enterpriseStardate)."))
+    switch reason {
+    case "Destroyed" :
+      displayBlankLine()
+    case "Starbase" :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "That does it, Captain! You are hearby relieved of command and sentenced to 99 Stardates of hard labour at Cygnus 12!!"))
+    case "Resigned" :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "There were \(klingonsRemaining) Klingon battle cruisers left at the end of your mission."))
+    case "Time" :
+      displayBlankLine()
+    case "Success" :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "Congratulations, Captain! The Last Klingon battle cruiser menacing the Federation has been destroyed."))
+      
+    default :
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "Some other reason???"))
+    }
     displayBlankLine()
-    messageEntries.append(MessageEntry(line: "Your mission is to destroy the \(klingonsRemaining) Klingon warships that have invaded the Galaxy before they can attack Federation Headquarters on Stardate \(enterpriseStardate + enterpriseDaysLeft)."))
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "This gives you \(enterpriseDaysLeft) days to complete your mission."))
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "There " + isAre + " \(basesRemaining) " + starbases + " in the Galaxy for resupplying your ship."))
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "Press Resign Command to reject the mission or New Mission for a different mission. "))
-    displayBlankLine()
-    gameStarted = true
+    //6400 PRINT"YOUR EFFICIENCY RATING IS";1000*(K7/(T-T0))^2:GOTO 6290
     
-    //Add code here to start or restart mission
+    // Variables
+    let klingonsDestroyed = klingonsStarting - klingonsRemaining
+    let totalDaysTaken = enterpriseStardate - startingStardate
+    if debug {print("Total Days Taken \(totalDaysTaken) Enetrprise Stardate \(enterpriseStardate) Starting Stardate \(startingStardate)")}
+    print("Klingons destroyed \(klingonsDestroyed)")
+    print("Total Days Taken \(totalDaysTaken)")
     
-    enterpriseOriginalStardate = enterpriseStardate
-    enterpriseOriginalEnergy = enterpriseEnergy
-    //Enter new Quadrant
-    klingonsInQuadrant = 0
-    basesInQuadrant = 0
-    starsInQuadrant = 0
-    //Get Quadrant name and region
-    if enterpriseQuadrantRow <= 4 {
-      enterpriseQuadrantName = galaxyQuadrantNames[0][enterpriseQuadrantRow - 1]
+    // Calculate Efficiency Rating
+    efficiency = 1000 * Double(klingonsDestroyed) / Double(totalDaysTaken)
+
+    // Output Efficiency Rating
+    print("Your Efficiency Rating is \(efficiency)")
+
+    // Additional message based on remaining enemy ships
+    if klingonsRemaining > 0 {
+        print("The mission is not complete. \(klingonsRemaining) enemy ships are still remaining.")
     } else {
-      enterpriseQuadrantName = galaxyQuadrantNames[1][enterpriseQuadrantRow - 1]
+        print("Congratulations! All enemy ships have been destroyed.")
     }
-    if enterpriseQuadrantCol <= 4 {
-      enterpriseQuadrantName = enterpriseQuadrantName + galaxySectorNames[enterpriseQuadrantCol - 1 ]
-    } else {
-      enterpriseQuadrantName = enterpriseQuadrantName + galaxySectorNames[enterpriseQuadrantCol - 5 ]
+    messageEntries.append(MessageEntry(line: "Your Efficiency Rating is \(efficiency)"))
+    if basesRemaining > 0 {
+      messageEntries.append(MessageEntry(line: "The Federation is in need of a new Starship Commander for a similar mission. If you wish to volunteer press New Mission."))
     }
-    if enterpriseStardate == enterpriseOriginalStardate {//Print starting Quadrant
-      messageEntries.append(MessageEntry(line: "Your mission begins with your starship located in the       "))
-      messageEntries.append(MessageEntry(line: "Galactic Quadrant \(enterpriseQuadrantName) Quadrant \(enterpriseQuadrantRow),\(enterpriseQuadrantCol) Sector \(enterpriseSectorRow),\(enterpriseSectorCol) "))
-    } else {//Print entering new Quadrant
-      messageEntries.append(MessageEntry(line: "Now entering Quadrant message . . .                         "))
+  }
+  // MARK: Navigation Functions
+  //Calculate the distance between two points on an 8 by 8 grid
+  mutating func calculateDistance(from point1: (Int, Int), to point2: (Int, Int)) -> Int {
+    if debug {print("calculateDistance()")}
+    let deltaX = abs(point2.0 - point1.0)
+    let deltaY = abs(point2.1 - point1.1)
+    return max(deltaX, deltaY)
+  }
+  mutating func impulseEngines(currentSector: (Int, Int), targetSector: (Int, Int)) -> (Int, Int) {
+    if debug {print("impulseEngines()")}
+
+    var newSector = currentSector
+    var previousSector = currentSector
+    var movement = 0
+    var repairFactor = 0.00
+    var systemNumber = 0
+    
+    // Check if the destination is within bounds
+    guard targetSector.0 >= 1 && targetSector.0 <= 8 && targetSector.1 >= 1 && targetSector.1 <= 8 else {
+      messageEntries.append(MessageEntry(line: "LT. SULU REPORTS: Incorrect course data, Sir!"))
+      return previousSector
     }
-    //Get contents of Quadrant
-    klingonsInQuadrant = galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol]/100
-    temp = galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] - (klingonsInQuadrant * 100)
-    basesInQuadrant = temp/10
-    starsInQuadrant = temp - (basesInQuadrant * 10)
-    if debug {print("\(galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol]) Klingons=\(klingonsInQuadrant) Starbases=\(basesInQuadrant) Stars=\(starsInQuadrant)")}
-    //Set Condition
-    if klingonsInQuadrant > 0 {
-      messageEntries.append(MessageEntry(line: "*** COMBAT AREA - CONDITION RED ***"))
-      enterpriseCondition = "RED"
-      if enterpriseShields < 200 {
-        messageEntries.append(MessageEntry(line: "*** SHIELDS DANGEROUSLY LOW ***"))
+    // Calculate distance and energy required
+    movement = calculateDistance(from: currentSector, to: targetSector)
+    energyRequired = Int(Double(calculateDistance(from: currentSector, to: targetSector)) * 1.0 + 0.5)
+    if enterpriseEnergy < energyRequired {//Not enough energy so message and exit
+      messageEntries.append(MessageEntry(line: "ENGINEERING REPORTS: Insufficient energy for moving to Sector \(targetSector.0),\(targetSector.1)!"))
+      if enterpriseShields >= (energyRequired - enterpriseEnergy) && enterpriseDamage[Constants.SystemNumber.impulseEngines] >= 0 {//Use shields to make up for shortage of energy as long as they're not damaged
+        messageEntries.append(MessageEntry(line: "DEFLECTOR CONTROL REPORTS: Acknowledges \(enterpriseShields) units of energy presently deployed to Shields. Return energy to main banks to proceed."))
       }
+      return targetSector
     }
-    damageFactor = 0.5 * Double.random(in: 0.01...0.99)
-    quadrant[enterpriseSectorRow][enterpriseSectorCol] = "<*>"
-    if klingonsInQuadrant > 0 {
+    
+    // Check if Impules Engines damaged
+    if enterpriseDamage[Constants.SystemNumber.impulseEngines] < 0.9 {
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORT: Impulse engines are damaged - Maximum movement 2 Sectors"))
+      return targetSector
+    }
+    
+    // Klingons move before Enterprise
+    if klingonsInQuadrant != 0 {
       for i in 1...klingonsInQuadrant {
+        quadrant[klingons[i][1]][klingons[i][2]] = "   "
         let coordinates = findEmptyPlaceinQuadrant()
-        let R1 = coordinates.y
-        let R2 = coordinates.x
-        quadrant[R1][R2] = "+K+"
-        if debug {print("i=\(i),R1=\(R1),R2=\(R2)")}
-        klingons[i][1] = R1
-        klingons[i][2] = R2
-        klingons[i][3] = Int(S9 * (0.5 * Double.random(in: 0.01..<1.0)))
+        klingons[i][1] = coordinates.0
+        klingons[i][2] = coordinates.1
+        quadrant[klingons[i][1]][klingons[i][2]] = "+K+"
+      }
+      //Klingons fire before Enterprise moves
+      klingonsShooting()
+      if enterpriseDestroyed {
+        endGame(reason: "Destroyed")
       }
     }
-    if basesInQuadrant > 0 {
-      let coordinates = findEmptyPlaceinQuadrant()
-      let R1 = coordinates.y
-      let R2 = coordinates.x
-      baseRow = R1
-      baseCol = R2
-      quadrant[R1][R2] = ">!<"
+    
+    // Romulan moves before Enterprise
+    if romulansInQuadrant != 0 {
+      quadrant[romulans[romulanVessel][2]][romulans[romulanVessel][3]] = "   "
+        let coordinates = findEmptyPlaceinQuadrant()
+        romulans[romulanVessel][2] = coordinates.0
+        romulans[romulanVessel][3] = coordinates.1
+        romulans[romulanVessel][4] = 0
+        cloaked = 0
+        quadrant[romulans[romulanVessel][2]][romulans[romulanVessel][3]] = "=R="
+
+      //Romulan fires before Enterprise moves
+      romulansShooting()
+      if enterpriseDestroyed {
+        endGame(reason: "Destroyed")
+      }
     }
-    for _ in 1...starsInQuadrant {
-      let coordinates = findEmptyPlaceinQuadrant()
-      let R1 = coordinates.y
-      let R2 = coordinates.x
-      quadrant[R1][R2] = " * "
+    
+    // Check for damage repaired during movement
+    repairFactor = Double(movement) / 9.0
+    for i in 1...9 {
+      if enterpriseDamage[i] < 1.00 {
+        enterpriseDamage[i] = enterpriseDamage[i] + repairFactor //Moving 1 Sector repair by 0.1
+        if debug {print("Using Impulse Engines repairing \(systems[i]) to \(enterpriseDamage[i])")}
+        if enterpriseDamage[i] > 1.00 {enterpriseDamage[i] = 1.00} //If over 1 then set to 1
+        if enterpriseDamage[i] >= 1.00 {messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[i]) repair completed."))} //If 1.00 then report repaired
+      }
     }
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "COMMAND:"))
-    displayBlankLine()
-  } //End of startGame
-  
-  //
-  //FUNCTIONS IN ALPHABETICAL ORDER
-  //
-  
-  mutating func addToDisplay(line: String) {
-    messageEntries.append(MessageEntry(line: line))
+    
+    // Random damage caused or repair progressing
+    if Int.random(in:0...100) <= 2 {
+      systemNumber = Int.random(in: 1...9)
+      if Double.random(in: 0.00...0.99) >= 0.6 { // Repair
+        enterpriseDamage[systemNumber] = enterpriseDamage[systemNumber] + Double.random(in: 0.0...0.3) + 0.1
+        if enterpriseDamage[systemNumber] > 1.00 {enterpriseDamage[systemNumber] = 1.00} //If over 1 then set to 1
+        displayBlankLine()
+        if debug {print("Using Impulse Engines repairing \(systems[systemNumber]) to \(enterpriseDamage[systemNumber])")}
+        messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemNumber]) state of repair improved."))
+      } else {
+        enterpriseDamage[systemNumber] = enterpriseDamage[systemNumber] - Double.random(in: 0.00...0.5) + 0.1
+        if debug {print("Using Impulse Engines repairing \(systems[systemNumber]) damaged to \(enterpriseDamage[systemNumber])")}
+        displayBlankLine()
+        messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemNumber]) damaged."))
+      }
+    }
+    
+    // Move the Enterprise
+    while newSector != targetSector {
+      // Store the current Sector as the previous Sector
+      previousSector = newSector
+        
+      // Determine the direction to move
+      let deltaX = targetSector.0 - newSector.0
+      let deltaY = targetSector.1 - newSector.1
+    
+      // Move one step in the direction
+      if deltaX != 0 {
+          newSector.0 += deltaX > 0 ? 1 : -1
+      }
+      if deltaY != 0 {
+          newSector.1 += deltaY > 0 ? 1 : -1
+      }
+
+      // Check if the new Sector contains an obstacle
+      if quadrant[newSector.0][newSector.1] != "   " {
+        quadrant[currentSector.0][currentSector.1] = "   "
+        sectorCoordinates = previousSector
+        quadrant[previousSector.0][previousSector.1] = "<*>"
+        displayBlankLine()
+        messageEntries.append(MessageEntry(line: "*** IMPULSE ENGINES SHUT DOWN AT SECTOR \(sectorCoordinates.0),\(sectorCoordinates.1) DUE TO BAD NAVIGATION ***"))
+        // Check if collided with Romulan
+        if debug {print(" newSector coordinates \(quadrant[newSector.0][newSector.1])")}
+        if debug {print(" currentSector coordinates \(quadrant[currentSector.0][currentSector.1])")}
+        if quadrant[newSector.0][newSector.1] == "=R=" {
+          // Check if cloaked and uncloak because of collision
+          messageEntries.append(MessageEntry(line: "*** CLOAKED ROMULAN IN SECTOR \(newSector.0),\(newSector.1) ***"))
+          romulans[romulanVessel][4] = 0
+          cloaked = 0
+          messageEntries.append(MessageEntry(line: "*** ROMULAN NOW VISIBLE IN SECTOR \(newSector.0),\(newSector.1) ***"))
+        }
+        checkIfDocked()
+        shortRangeScan()
+      return previousSector
+      }
+      // Decide on damage or repair
+      if Int.random(in:0...99) <= 2 {
+        systemNumber = Int.random(in: 1...9)
+        if Int.random(in: 0...99) >= 6 {
+          enterpriseDamage[systemNumber] = enterpriseDamage[systemNumber] + Double.random(in: 0.00...1.00) * 0.3 + 0.1
+          if enterpriseDamage[systemNumber] > 1.00 {enterpriseDamage[systemNumber]
+            displayBlankLine()
+            messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemNumber]) state of repair improved."))}
+        } else {
+          enterpriseDamage[systemNumber] = enterpriseDamage[systemNumber] - Double.random(in: 0.00...1.00) * 0.5 + 0.1
+          displayBlankLine()
+          messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemNumber]) damaged."))
+        }
+      }
+      // Move the object to the new Sector
+      quadrant[previousSector.0][previousSector.1] = "   "
+      sectorCoordinates = newSector
+      quadrant[newSector.0][newSector.1] = "<*>"
+    }
+    // Movement completed - Increment Stardate based on 9 sectors per quadrant
+    enterpriseStardate += Int(Double(movement)/9 + 0.5)
+    if enterpriseStardate > startingStardate + daysLeft {
+      if debug {print("Enterprise Stardate: \(enterpriseStardate) Starting Stardate: \(startingStardate) Days Left: \(daysLeft)")}
+      endGame(reason: "Time")
+    }
+    consumeEnergy()
+    checkIfDocked()
+    shortRangeScan()
+  return newSector
+  }
+  mutating func warpDrive(currentQuadrant: (Int, Int), targetQuadrant: (Int, Int)) -> (Int, Int) {
+    if debug {print("warpDrive()")}
+    var newQuadrant = currentQuadrant
+    var previousQuadrant = currentQuadrant
+    var movement = 0
+    var repairFactor = 0.00
+    var systemNumber = 0
+    
+    // Check if the destination is within bounds
+    guard targetQuadrant.0 >= 1 && targetQuadrant.0 <= 8 && targetQuadrant.1 >= 1 && targetQuadrant.1 <= 8 else {
+      messageEntries.append(MessageEntry(line: "LT. SULU REPORTS: Incorrect course data, Sir!"))
+      return previousQuadrant
+    }
+    // Calculate distance and energy required
+    movement = calculateDistance(from: currentQuadrant, to: targetQuadrant)
+    if debug {print("Warp Drive movement: \(movement)")}
+    energyRequired = Int(Double(calculateDistance(from: currentQuadrant, to: targetQuadrant)) * 8.0 + 0.5)
+    if enterpriseEnergy < energyRequired {//Not enough energy so message and exit
+      messageEntries.append(MessageEntry(line: "ENGINEERING REPORTS: Insufficient energy for moving to Quadrant \(targetQuadrant.0),\(targetQuadrant.1)!"))
+      if enterpriseShields >= (energyRequired - enterpriseEnergy) && enterpriseDamage[Constants.SystemNumber.warpDrive] >= 0 {//Use shields to make up for shortage of energy as long as they're not damaged
+        messageEntries.append(MessageEntry(line: "DEFELECTOR CONTROL REPORTS: Acknowledges \(enterpriseShields) units of energy presently deployed to Shields. Return energy to main banks to proceed."))
+      }
+      return targetQuadrant
+    }
+    
+    // Check if Warp Drive damaged
+    if enterpriseDamage[Constants.SystemNumber.warpDrive] < 0.9 {
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORT: Warp Drive is damaged - Maximum movement 2 Quadrants"))
+      return targetQuadrant
+    }
+    
+    // Klingons move before Enterprise
+    if klingonsInQuadrant != 0 {
+      for i in 1...klingonsInQuadrant {
+        quadrant[klingons[i][1]][klingons[i][2]] = "   "
+        let coordinates = findEmptyPlaceinQuadrant()
+        klingons[i][1] = coordinates.0
+        klingons[i][2] = coordinates.1
+        quadrant[klingons[i][1]][klingons[i][2]] = "+K+"
+      }
+      //Klingons fire before Enterprise moves
+      klingonsShooting()
+      if enterpriseDestroyed {
+        endGame(reason: "Destroyed")
+      }
+    }
+    
+    // Check for damage repaired during movement
+    repairFactor = Double(movement) * 8
+    for i in 1...8 {
+      if enterpriseDamage[i] < 1.00 {
+        enterpriseDamage[i] = enterpriseDamage[i] + repairFactor //Moving 1 Quadrant repair by 0.1
+        if (enterpriseDamage[i] > 1.00) {enterpriseDamage[i] = 1.00} //If over 1.00 go back to 1.00
+        if enterpriseDamage[i] >= 1.00 {messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[i]) repair completed."))}
+        }
+    }
+    
+    // Decide on damage or repair
+    if Int.random(in:0...99) <= 2 {
+      systemNumber = Int.random(in: 1...9)
+      if Int.random(in: 0...99) >= 6 {
+        enterpriseDamage[systemNumber] = enterpriseDamage[systemNumber] + Double.random(in: 0.00...1.00) * 0.3 + 0.1
+        if enterpriseDamage[systemNumber] > 1.00 {enterpriseDamage[systemNumber]
+          displayBlankLine()
+          messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemNumber]) state of repair improved."))}
+      } else {
+        enterpriseDamage[systemNumber] = enterpriseDamage[systemNumber] - Double.random(in: 0.00...1.00) * 0.5 + 0.1
+        displayBlankLine()
+        messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemNumber]) damaged."))
+      }
+    }
+    // Move the Enterprise
+    while newQuadrant != targetQuadrant {
+      // Store the current Sector as the previous Sector
+      previousQuadrant = newQuadrant
+        
+      // Determine the direction to move
+      let deltaX = targetQuadrant.0 - newQuadrant.0
+      let deltaY = targetQuadrant.1 - newQuadrant.1
+    
+      // Move one step in the direction
+      if deltaX != 0 {
+          newQuadrant.0 += deltaX > 0 ? 1 : -1
+      }
+      if deltaY != 0 {
+          newQuadrant.1 += deltaY > 0 ? 1 : -1
+      }
+    }
+    quadrantCoordinates = targetQuadrant
+    quadrant = Array(repeating: Array(repeating: "   ", count: 9), count: 9)
+    // Decide on damage or repair
+    
+    // Movement completed - Increment Stardate based on 1 Stardate per Quadrant moved
+    enterpriseStardate += Int(Double(movement) + 0.5)
+    if enterpriseStardate > startingStardate + daysLeft {
+      endGame(reason: "Time")
+      if debug {print("Enterprise Stardate: \(enterpriseStardate) Starting Stardate: \(startingStardate) Days Left: \(daysLeft)")}
+    }
+    enterNewQuadrant()
+    consumeEnergy()
+    checkIfDocked()
+  return newQuadrant
   }
   
-  mutating func checkShipStatus() -> String {
-    if debug {print("checkShipStatus()")}
-    if docked {
-      return "DOCKED"
-    } else if klingonsInQuadrant > 0 {
-      return "RED"
-    } else if enterpriseEnergy < enterpriseOriginalEnergy / 10 {
-      return "YELLOW"
-    } else {
-      return "GREEN"
+  mutating func consumeEnergy() {
+    if debug {print("consumeEnergy")}
+    enterpriseEnergy -= energyRequired;  // a warp speed of 8 consumes 8x8+10 =74 energy, speed 1 instead 1x8+10 =18
+    if(enterpriseEnergy >= 0) {
+      return //EnergyLevel OK
+    }
+    messageEntries.append(MessageEntry(line: "Shield Control supplies energy to complete the manoeuvre."))
+    enterpriseShields += enterpriseEnergy
+    enterpriseEnergy = 0
+    if enterpriseEnergy <= 0  {
+      enterpriseEnergy = 0
     }
   }
-  
   mutating func checkIfDocked() -> (Bool) {
-    docked = false
     if debug {print("checkIfDocked()")}
-    for i in enterpriseSectorRow - 1...enterpriseSectorRow + 1 {
-      for j in enterpriseSectorCol - 1...enterpriseSectorCol + 1 {
-        let ii = i
-        let jj = j
+    docked = false
+      for i in sectorCoordinates.0 - 1...sectorCoordinates.0 + 1 {
+          for j in sectorCoordinates.1 - 1...sectorCoordinates.1 + 1 {
+            let ii = i
+            let jj = j
         if (ii >= 1 && ii <= 8 && jj >= 1 && jj <= 8) {
-          if (compareStringInQuadrant(A$: ">!<", y: i, x: j)) {
+          if quadrant[i][j] == ">!<" {
             docked = true
             enterpriseCondition = "DOCKED"
-            if debug {print("docked = \(docked) enterpriseCondition = \(enterpriseCondition)")}
             enterpriseEnergy = 3000
             enterpriseTorpedoes = 10
-            messageEntries.append(MessageEntry(line: "SHIELDS DROPPED FOR DOCKING PURPOSES"))
+              displayBlankLine()
+            messageEntries.append(MessageEntry(line: "Shields dropped for docking."))
+            messageEntries.append(MessageEntry(line: "Energy levels and Photon Torpedoes replenished."))
             enterpriseShields = 0
             enterpriseCondition = checkShipStatus()
-            shortRangeScan()
           }
         }
       }
@@ -279,154 +602,501 @@ struct Game {
     return docked
   }
   
-  mutating func compareStringInQuadrant(A$: String, y: Int, x: Int) -> Bool { //8830
-    if quadrant[y][x] == A$ {
-      return true
+  mutating func enterNewQuadrant () {
+    if debug {print("enterNewQuadrant()")}
+    klingonsInQuadrant = 0
+    romulansInQuadrant = 0
+    basesInQuadrant = 0
+    starsInQuadrant = 0
+    
+    //Get Quadrant name and region
+    if quadrantCoordinates.0 <= 4 {
+      eQuadrantName = gQuadrantNames[0][quadrantCoordinates.0 - 1]
+    } else {
+      eQuadrantName = gQuadrantNames[1][quadrantCoordinates.0 - 1]
     }
-    return false
-  }
-  
-  mutating func consumeEnergy() {
-    if debug {print("consumeEnergy()")}
-    enterpriseEnergy -= noOfSteps - 10;  // a warp speed of 8 consumes 8x8+10 =74 energy, speed 1 instead 1x8+10 =18
-    if(enterpriseEnergy >= 0) {
-      return //EnergyLevel OK
+    if quadrantCoordinates.1 <= 4 {
+      eQuadrantName = eQuadrantName + gSectorNames[quadrantCoordinates.1 - 1 ]
+    } else {
+      eQuadrantName = eQuadrantName + gSectorNames[quadrantCoordinates.1 - 5 ]
     }
-    messageEntries.append(MessageEntry(line: "SHIELD CONTROL SUPPLIES ENERGY TO COMPLETE THE MANOEUVRE."))
-    enterpriseShields += enterpriseEnergy
-    enterpriseEnergy = 0
-    if debug {print("enterpriseEnergy = ",enterpriseEnergy)}
-    if enterpriseShields <= 0  {
-      enterpriseShields = 0
+    if !gameStarted {//Print starting Quadrant
+      messageEntries.append(MessageEntry(line: "Your mission begins with your starship located in the       "))
+      gameStarted = true
+    } else {//Print entering new Quadrant
+      messageEntries.append(MessageEntry(line: "Now entering Quadrant . . .                         "))
     }
-  }
-  
-  
-  mutating func courseControl (direction: Double, warp: Double) {
-    var course = 0.0
-    var repairFactor = 0.0
-    var system = 0
-    if debug {print("courseControl()")}
-    if damage[1] < 0 {//Check if warp engines are damaged
-      maxWarp = "0.2"
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORT: Warp engines are damaged - Maximum Warp 0.2"))
-      return
-    }
-    //Otherwise continue
-    //Set course = direction
-    course = Double(direction)
-    if course == 9 {//Course of 9 == 1
-      course = 1
-    }
-    //Check if course within range 1.0 to 8.0
-    if course < 1 || course >= 9 {//Not in range so message error and exit
-      messageEntries.append(MessageEntry(line: "LT. SULU REPORTS: INCORRECT COURSE DATA, SIR!"))
-      return
-    }
-    if warp > Double(maxWarp) ?? 0.0 {//Warp out of range so message and exit
-      messageEntries.append(MessageEntry(line: "CHIEF ENGINEER SCOTT REPORTS: THE ENGINES WON'T TAKE WARP FACTOR \(warp)!"))
-      return
-    }
-    noOfSteps = Int(warp * 8 + 0.5)
-    if enterpriseEnergy < noOfSteps {//Not enough energy so message and exit
-      messageEntries.append(MessageEntry(line: "ENGINEERING REPORTS: INSUFFICIENT ENERGY FOR MANOEUVERING AT WARP \(warp)!"))
-      if enterpriseShields >= (noOfSteps - enterpriseEnergy) && damage[7] >= 0 {
-        messageEntries.append(MessageEntry(line: "DEFELECTOR CONTROL ROOM ACKNOWLEDGES \(enterpriseShields) UNITS OF ENERGY PRESENTLY DEPLOTED TO SHIELDS."))
+    messageEntries.append(MessageEntry(line: "Galactic Quadrant \(eQuadrantName) Quadrant \(quadrantCoordinates.0),\(quadrantCoordinates.1) Sector \(sectorCoordinates.0),\(sectorCoordinates.1) "))
+    
+    //Get contents of Quadrant
+    romulansInQuadrant = galaxy[quadrantCoordinates.0][quadrantCoordinates.1]/1000
+    temp = galaxy[quadrantCoordinates.0][quadrantCoordinates.1] - (romulansInQuadrant * 1000)
+    klingonsInQuadrant = temp/100
+    temp = temp - (klingonsInQuadrant * 100)
+    basesInQuadrant = temp/10
+    starsInQuadrant = temp - (basesInQuadrant * 10)
+    if debug {print("Romulans: \(romulansInQuadrant) Klingons: \(klingonsInQuadrant) Bases: \(basesInQuadrant) Stars: \(starsInQuadrant)")}
+    
+    //Set Condition
+    if klingonsInQuadrant > 0 || romulansInQuadrant > 0 {
+      messageEntries.append(MessageEntry(line: "*** COMBAT AREA - CONDITION RED ***"))
+      enterpriseCondition = "RED"
+      if romulansInQuadrant > 0 {
+        if cloaked == 1 {
+          messageEntries.append(MessageEntry(line: "Romulan Warbird present but cloaked."))
+        } else {
+          messageEntries.append(MessageEntry(line: "Romulan Warbird uncloaked."))
+        }
+      }
+      if enterpriseShields < 400 {
+        messageEntries.append(MessageEntry(line: "*** SHIELDS DANGEROUSLY LOW ***"))
       }
     }
-    if klingonsInQuadrant != 0 {
-      if debug {print("klingonsInQuadrant = \(klingonsInQuadrant)")}
+    damageFactor = 0.5 * Double.random(in:0.1..<1.0)//D4=.5*RND(1) NOT SURE IF THIS IS BEING USED
+    
+    //Position Enterprise
+    quadrant[sectorCoordinates.0][sectorCoordinates.1] = "<*>"
+    if debug {print("Enterprise positioned at Quadrant\(quadrantCoordinates.0),\(quadrantCoordinates.1) Sector \(sectorCoordinates.0),\(sectorCoordinates.1)")}
+    
+    //Position Klingons if there are any
+    if klingonsInQuadrant > 0 {
       for i in 1...klingonsInQuadrant {
-        x = klingons[i][1]
-        y = klingons[i][2]
-        quadrant[x][y] = "   "
         let coordinates = findEmptyPlaceinQuadrant()
-        x = coordinates.y
-        y = coordinates.x
-        quadrant[x][y] = "+K+"
-        if debug {shortRangeScan()}
-        klingonsShooting()
-        if enterpriseDestroyed {
-          gameOver(reason: "Destroyed")
+        quadrant[coordinates.0][coordinates.1] = "+K+"//Klingon
+        klingons[i][1] = coordinates.0
+        klingons[i][2] = coordinates.1
+        klingons[i][3] = Int(Double(Constants.Game.originalKlingonEnergy) * (Double.random(in: 0.5..<1.5)))
+        if debug {print("Klingon \(i) positioned at Quadrant\(quadrantCoordinates.0),\(quadrantCoordinates.1) Sector \(coordinates.0),\(coordinates.1) Energy \(klingons[i][3])")}
+      }
+    }
+    
+    //Position Romulans if there are any
+    if romulansInQuadrant > 0 {
+      // Find which Romulan it is is and position it
+      romulanVessel = 0
+      for i in 1...romulansRemaining {
+        if romulans[i][0] == quadrantCoordinates.0 && romulans[i][1] == quadrantCoordinates.1 {
+          romulanVessel = i
+          let coordinates = findEmptyPlaceinQuadrant()
+          quadrant[coordinates.0][coordinates.1] = "=R="
+          romulans[romulanVessel][2] = coordinates.0
+          romulans[romulanVessel][3] = coordinates.1
+          romulans[romulanVessel][4] = 1 //Cloaked
+          if debug {print("Romulan \(i) positioned at Quadrant \(quadrantCoordinates.0),\(quadrantCoordinates.1) Sector \(coordinates.0),\(coordinates.1) Cloaked = \(romulans[i][4]) Energy \(romulans[i][5])")}
+          break
         }
       }
     }
-    repairFactor = warp
-    if warp >= 1 {repairFactor = 1.00}
-    for i in 1...8 {
-      if damage[i] < 0 {
-        damage[i] = damage[i] + repairFactor //Moving 1 Quadrant repair by 1
-        if (damage[i] > 0.1 && damage[i] < 0) { //If almost 0 go back to -0.1
-          damage[i] = 0.1
-        } else {
-          if damage[i] >= 0 {
-            messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORT: \(systems[i]) REPAIR COMPLETED."))
+    //Position Starbase if there is one
+    if basesInQuadrant > 0 {
+      let coordinates = findEmptyPlaceinQuadrant()
+      quadrant[coordinates.0][coordinates.1] = ">!<"
+    }
+    
+    //Position Stars
+    for _ in 1...starsInQuadrant {
+      let coordinates = findEmptyPlaceinQuadrant()
+      quadrant[coordinates.0][coordinates.1] = " * "
+    }
+    //shortRangeScan()
+  }
+  // MARK: Scanner Functions
+  mutating func shortRangeScan() {
+    if debug {print("shortRangeScan()")}
+    enterpriseCondition = checkShipStatus()
+    displayBlankLine()
+    if enterpriseDamage[Constants.SystemNumber.shortRangeSensors] < 0.9 {
+      messageEntries.append(MessageEntry(line: "*** SHORT RANGE SENSORS ARE OUT ***"))
+    } else {
+      messageEntries.append(MessageEntry(line: "SHORT RANGE SCAN FOR QUADRANT \(quadrantCoordinates.0),\(quadrantCoordinates.1)"))
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "    1  2  3  4  5  6  7  8                                     "))
+      messageEntries.append(MessageEntry(line: "   ------------------------                                    "))
+      var mySubstring: Substring
+      var myString: String
+      mySubstring = ""
+      for i in 1...8 {
+        mySubstring = "\(i)|"
+        for j in 1...8 {
+          if quadrant[i][j] == "=R=" && cloaked == 1 {
+            mySubstring = mySubstring + "   "
+          } else {
+            mySubstring = mySubstring + quadrant[i][j]
+          }
+          //mySubstring = mySubstring + quadrant[i][j]
+        }
+        switch i{
+        case 1:
+          mySubstring = mySubstring + "  STARDATE \(enterpriseStardate)"
+        case 2:
+          mySubstring = mySubstring + "  CONDITION \(enterpriseCondition)"
+        case 3:
+          mySubstring = mySubstring + "  QUADRANT \(quadrantCoordinates.0),\(quadrantCoordinates.1)"
+        case 4:
+          mySubstring = mySubstring + "  SECTOR \(sectorCoordinates.0),\(sectorCoordinates.1)"
+        case 5:
+          mySubstring = mySubstring + "  PHOTON TORPEDOES \(enterpriseTorpedoes)"
+        case 6:
+          mySubstring = mySubstring + "  ENERGY \(enterpriseEnergy)"
+        case 7:
+          mySubstring = mySubstring + "  SHIELDS \(enterpriseShields)"
+        case 8:
+          mySubstring = mySubstring + "  KLINGONS REMAINING \(klingonsRemaining)"
+        default:
+          print("Error")
+        }
+        myString = mySubstring.padding(toLength: 60, withPad: " ", startingAt: 0)
+        messageEntries.append(MessageEntry(line: String(myString)))
+      }
+      messageEntries.append(MessageEntry(line: "   ------------------------                                    "))
+      messageEntries.append(MessageEntry(line: "<*> Enterprise +K+ Klingon =R= Romulan >!< Starbase  *  Star"))
+      explored[quadrantCoordinates.0][quadrantCoordinates.1] = galaxy[quadrantCoordinates.0][quadrantCoordinates.1]
+    }
+    getCommand()
+  }
+  mutating func longRangeScan() {
+    if debug {print("longRangeScan()")}
+    
+    displayBlankLine()
+    if enterpriseDamage[Constants.SystemNumber.longRangeSensors] < 0.9 {
+      messageEntries.append(MessageEntry(line: "*** LONG RANGE SENSORS ARE OUT ***"))
+    } else {
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "LONG RANGE SCAN FROM QUADRANT \(quadrantCoordinates.0),\(quadrantCoordinates.1)"))
+      displayBlankLine()
+      temp$ = ""
+      if (quadrantCoordinates.1)-1 < 1 {temp$ = "  ... .."}
+        else {temp$ = "  ...\((quadrantCoordinates.1)-1).."}
+      temp$ = temp$ + "...\(quadrantCoordinates.1).."
+      if (quadrantCoordinates.1)+1 > 8 {temp$ = temp$ + "... ..."}
+        else {temp$ = temp$ + "...\(quadrantCoordinates.1+1)..."}
+      messageEntries.append(MessageEntry(line: temp$))
+      messageEntries.append(MessageEntry(line: "  -------------------"))
+      for i in quadrantCoordinates.0 - 1...quadrantCoordinates.0 + 1 {
+        lrs[1] = -1
+        lrs[2] = -2
+        lrs[3] = -3
+        for j in quadrantCoordinates.1 - 1...quadrantCoordinates.1 + 1 {
+          if i > 0 && i < 9 && j > 0 && j < 9 {
+            lrs[j - quadrantCoordinates.1 + 2] = galaxy[i][j]
+            explored[i][j] = galaxy[i][j]
+          }
+        }
+        temp$ = "\(i)|"
+        if i<1 || i>8 {temp$ = " |"}
+        for l in 1...3 {
+          temp$ = temp$ + ": "
+          if lrs[l] < 0 {
+            temp$ = temp$ + "*** "
+          } else {
+            temp$ = temp$ + String(lrs[l] + 1000).suffix(3) + " "
+          }
+        }
+        temp$ = temp$ + ":"
+        messageEntries.append(MessageEntry(line: temp$))
+        messageEntries.append(MessageEntry(line: "  -------------------"))
+      }
+      messageEntries.append(MessageEntry(line: "Quadrant contents on each side of the Enterprise (in centre) as 3-digit code for number of Klingons, Starbases and Stars. Example: 217 = 2 Klingons, 1 Starbase, 7 Stars."))
+    }
+    getCommand()
+  }
+  mutating func checkShipStatus() -> String {
+    if debug {print("checkShipStatus()")}
+    switch true {
+    case docked:
+        return "DOCKED"
+    case (klingonsInQuadrant != 0) || (romulansInQuadrant != 0):
+        return "RED"
+    case enterpriseEnergy < Constants.Game.originalEnergy / 10:
+        return "YELLOW"
+    default:
+        return "GREEN"
+    }
+  }
+  mutating func findEmptyPlaceinQuadrant() -> (Int,Int) {
+    // generate 2 random coordinates, and check if quadrant cell is empty.
+    //If empty space is found, returns the coordinates
+    if debug {print("findEmptyPlaceinQuadrant()")}
+    var found = false
+    var row = 0
+    var col = 0
+    while (!found) {
+      row = Int.random(in: 1...8)
+      col = Int.random(in: 1...8)
+      found = quadrant[row][col] == "   "
+    }
+    return (row, col)
+  }
+  // MARK: Weapons Functions
+  mutating func firePhasers(unitsToFire: String) {
+    if debug {print("firePhasers()")}
+    var hits = 0
+    var hits1 = 0.0
+    var rangeA = 0.0
+    var rangeB = 0.0
+    var range = 0.0
+    var unitsFired = 0
+    displayBlankLine()
+    if enterpriseDamage[Constants.SystemNumber.phaserControl] < 0.9 {
+      messageEntries.append(MessageEntry(line: "*** PHASERS INOPERATIVE ****"))
+    } else {
+      if klingonsInQuadrant == 0 && romulansInQuadrant == 0 {
+        messageEntries.append(MessageEntry(line: "SCIENCE OFFICER SPOCK REPORTS: Sensors show no enemy ships in this Quadrant."))
+      } else {
+        if enterpriseDamage[Constants.SystemNumber.libraryComputer] < 0.90 {
+          messageEntries.append(MessageEntry(line: "*** COMPUTER FAILURE HAMPERS ACCURACY ***"))
+        }
+        if unitsToFire == "0" {
+          messageEntries.append(MessageEntry(line: "Firing of Phasers CANCELLED"))
+          return
+        }
+        messageEntries.append(MessageEntry(line: "Phasers powering up . . ."))
+        unitsFired = Int(unitsToFire) ?? 0
+        enterpriseEnergy -= unitsFired
+        if enterpriseDamage[Constants.SystemNumber.shieldControl] < 1.00 {
+          unitsFired = Int(Double(unitsFired) * Double.random(in: 0.01...1))
+        }
+        hits1 = Double(unitsFired / (klingonsInQuadrant + romulansInQuadrant))
+        // Fire on Klingons
+        if klingonsInQuadrant > 0 {
+          for i in 1...3 {
+            if klingons[i][3] > 0 {
+              rangeA = Double((klingons[i][1] - sectorCoordinates.0) * (klingons[i][1] - sectorCoordinates.0))
+              rangeB = Double((klingons[i][2] - sectorCoordinates.1) * (klingons[i][2] - sectorCoordinates.1))
+              range = (rangeA + rangeB).squareRoot()
+              hits = Int((hits1 / Double(range)) * (Double.random(in: 0.01...1) + 2))
+              if hits <= (Int(Double(0.15) * Double(klingons[i][3]))) {
+                messageEntries.append(MessageEntry(line: "Sensors show no damage to enemy at \(klingons[i][1]),\(klingons[i][2])"))
+              } else {
+                klingons[i][3] = klingons[i][3] - hits
+                messageEntries.append(MessageEntry(line: "\(hits) unit hit to Klingon at Sector \(klingons[i][1]),\(klingons[i][2])"))
+              }
+              if klingons[i][3] <= 0 {
+                messageEntries.append(MessageEntry(line: "*** KLINGON DESTROYED ***"))
+                enterpriseCondition = checkShipStatus()
+                quadrant[klingons[i][1]][klingons[i][2]] = "   "
+                klingonsInQuadrant = klingonsInQuadrant - 1
+                klingonsRemaining = klingonsRemaining - 1
+                galaxy[quadrantCoordinates.0][quadrantCoordinates.1] -= 100
+                explored[quadrantCoordinates.0][quadrantCoordinates.1] = galaxy[quadrantCoordinates.0][quadrantCoordinates.1]
+                if klingonsRemaining == 0 {
+                  endGame(reason: "Success")
+                }
+              } else {
+                messageEntries.append(MessageEntry(line: "Sensors show \(klingons[i][3]) units remaining."))
+              }
+              if klingonsInQuadrant > 0 {klingonsShooting()}
+            }
+          }
+        }
+        // Are there Romulans in Quadrant and are they cloaked?
+        if romulansInQuadrant > 0 && (cloaked != 0) {
+          if debug {print("Romulan cloaked")}
+          messageEntries.append(MessageEntry(line: "Sensors unable to locate cloaked Romulan vessel."))
+          messageEntries.append(MessageEntry(line: ". . . Phasers powering down."))
+          return
+        }
+        if romulansInQuadrant > 0 && (cloaked != 1) {
+          if debug {print("Romulan being fired on")}
+        }
+        // Fire on Romulans
+        if romulansInQuadrant > 0 {
+          if romulans[romulanVessel][5] > 0 {
+            rangeA = Double((romulans[romulanVessel][2] - sectorCoordinates.0) * (romulans[romulanVessel][2] - sectorCoordinates.0))
+            rangeB = Double((romulans[romulanVessel][3] - sectorCoordinates.1) * (romulans[romulanVessel][3] - sectorCoordinates.1))
+            range = (rangeA + rangeB).squareRoot()
+            hits = Int((hits1 / Double(range)) * (Double.random(in: 0.01...1) + 2))
+            if hits <= (Int(Double(0.15) * Double(romulans[romulanVessel][5]))) {
+                messageEntries.append(MessageEntry(line: "Sensors show no damage to enemy at \(romulans[romulanVessel][2]),\(romulans[romulanVessel][3])"))
+            } else {
+              romulans[romulanVessel][5] -= hits
+              messageEntries.append(MessageEntry(line: "\(hits) unit hit to Romulan at Sector \(romulans[romulanVessel][2]),\(romulans[romulanVessel][3])"))
+            }
+            if romulans[romulanVessel][5] <= 0 {
+              messageEntries.append(MessageEntry(line: "*** ROMULAN DESTROYED ***"))
+              enterpriseCondition = checkShipStatus()
+              romulansInQuadrant = romulansInQuadrant - 1
+              romulansRemaining = romulansRemaining - 1
+              quadrant[romulans[romulanVessel][2]][romulans[romulanVessel][3]] = "   "
+              romulans[romulanVessel][5] = 0
+              galaxy[quadrantCoordinates.0][quadrantCoordinates.1] -= 1000
+              explored[quadrantCoordinates.0][quadrantCoordinates.1] = galaxy[quadrantCoordinates.0][quadrantCoordinates.1]
+              if romulansRemaining == 0 {
+                messageEntries.append(MessageEntry(line: "*** ALL ROMULANS DESTROYED ***"))
+              } else {
+                messageEntries.append(MessageEntry(line: "*** ROMULANS REMAINING ELSEWHERE IN THE GALAXY ***"))
+            }
+            } else {
+                messageEntries.append(MessageEntry(line: "Sensors show \(romulans[romulanVessel][5]) units remaining."))
+            }
+            if romulansInQuadrant > 0 {romulansShooting()}
           }
         }
       }
     }
-    if Double.random(in:0.00...0.99) <= 0.2 {
-      system = Int.random(in: 1...8)
-      if Double.random(in: 0.00...0.99) >= 0.6 {
-        damage[system] = damage[system] + Double.random(in: 0.00...0.99) * 3 + 1
-        messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORT: \(systems[system]) STATE OF REPAIR IMPROVED."))
+  }
+  mutating func fireTorpedoes(currentSector: (Int, Int), targetSector: (Int, Int)) -> (Int, Int) {
+    if debug {print("fireTorpedoes()")}
+    var newSector = currentSector
+    var previousSector = currentSector
+    var klingonDestroyed = 0
+    var basesInQuadrant = 0
+    var nothingFound = true
+    displayBlankLine()
+    if enterpriseTorpedoes <= 0 {
+      messageEntries.append(MessageEntry(line: "*** ALL PHOTON TORPEDOES EXPENDED ***"))
+      return previousSector
+    }
+    if enterpriseDamage[Constants.SystemNumber.photonTubes] < 0.9 {
+      messageEntries.append(MessageEntry(line: "*** PHOTON TUBES ARE NOT OPERATIONAL ***"))
+      return previousSector
+    }
+    enterpriseTorpedoes -= 1
+    messageEntries.append(MessageEntry(line: "Torpedo track:"))
+    while newSector != targetSector {
+      // Store the current Sector as the previous Sector
+      previousSector = newSector
+      
+      // Determine the direction to move
+      let deltaX = targetSector.0 - newSector.0
+      let deltaY = targetSector.1 - newSector.1
+      
+      // Move one step in the direction
+      if deltaX != 0 {
+        newSector.0 += deltaX > 0 ? 1 : -1
+      }
+      if deltaY != 0 {
+        newSector.1 += deltaY > 0 ? 1 : -1
+      }
+      // Check if out of bounds
+      if (newSector.0 < 1) || (newSector.0 > 8) || (newSector.1 < 1) || (newSector.1 > 8) {//Torpedo is out of bounds
+        messageEntries.append(MessageEntry(line: "*** TORPEDO MISSED ***"))
+        break
+      }
+      messageEntries.append(MessageEntry(line: "----------> \(newSector.0),\(newSector.1)"))
+      if quadrant[newSector.0][newSector.1] == "   " {
+        //Found clear space so carry on
       } else {
-        damage[system] = damage[system] - Double.random(in: 0.00...0.99) * 5 + 1
-        messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORT: \(systems[system]) DAMAGED."))
+        // Could be a Klingon, Romulan, Star or Starbase - used Switch statement
+        switch quadrant[newSector.0][newSector.1] {
+          case "+K+": //Found a Klingon
+            nothingFound = false
+            messageEntries.append(MessageEntry(line: "*** KLINGON DESTROYED ***"))
+            klingonsInQuadrant -= 1
+            enterpriseCondition = checkShipStatus()
+            klingonsRemaining -= 1
+            if klingonsRemaining <= 0 {
+              endGame(reason: "Success")
+              break
+            }
+            //Check which Klingon has been destroyed
+            for i in 1...3 {
+              if newSector.0 == klingons[i][1] && newSector.1 == klingons[i][2] {
+                klingons[i][3] = 0
+                klingonDestroyed = i
+              }
+            }
+            if debug {print("Klingon at Sector \(newSector.0),\(newSector.1) Destroyed")}
+          printKlingonData()
+            quadrant[newSector.0][newSector.1] = "   "
+            galaxy[quadrantCoordinates.0][quadrantCoordinates.1] -= 100
+            explored[quadrantCoordinates.0][quadrantCoordinates.1] = galaxy[quadrantCoordinates.0][quadrantCoordinates.1]
+            if klingonsRemaining == 0 {
+              endGame(reason: "Success")
+            }
+          case "=R=": //Found a Romulan
+            nothingFound = false
+            messageEntries.append(MessageEntry(line: "*** ROMULAN DESTROYED ***"))
+            romulansInQuadrant -= 1
+            enterpriseCondition = checkShipStatus()
+            romulansRemaining -= 1
+            quadrant[newSector.0][newSector.1] = "   "
+            galaxy[quadrantCoordinates.0][quadrantCoordinates.1] -= 1000
+            explored[quadrantCoordinates.0][quadrantCoordinates.1] = galaxy[quadrantCoordinates.0][quadrantCoordinates.1]
+            if romulansRemaining == 0 {
+              messageEntries.append(MessageEntry(line: "NO ROMULANS REMAINING IN THE GALAXY"))
+            } else {
+              messageEntries.append(MessageEntry(line: "Sensors show \(romulansRemaining) Romulan(s) remaining in the galaxy."))
+            }
+          case ">!<": //Found a Starbase
+            nothingFound = false
+            messageEntries.append(MessageEntry(line: "Starbase at \(newSector.0),\(newSector.1) destroyed"))
+            basesInQuadrant -= 1
+            removeStarbase(starbaseCoordinates: (quadrantCoordinates.0,quadrantCoordinates.1))
+            basesRemaining -= 1
+            quadrant[newSector.0][newSector.1] = "   "
+            galaxy[quadrantCoordinates.0][quadrantCoordinates.1] -= 10
+            explored[quadrantCoordinates.0][quadrantCoordinates.1] = galaxy[quadrantCoordinates.0][quadrantCoordinates.1]
+            if basesRemaining > 0 || klingonsRemaining > enterpriseStardate - startingStardate - daysLeft {
+              messageEntries.append(MessageEntry(line: "Starfleet Command reviewing your record to consider Court Martial!"))
+              //shipDocked = false
+              break
+            } else {
+              messageEntries.append(MessageEntry(line: "Last Starbase destroyed"))
+              endGame(reason: "Last Starbase destroyed")
+              break
+            }
+          case " * ": //Found a Star
+            nothingFound = false
+            if quadrant[newSector.0][newSector.1] == " * " {
+              messageEntries.append(MessageEntry(line: "Star at \(newSector.0),\(newSector.1) absorbed Torpedo energy."))
+              break
+            }
+          default: //Found something else
+            nothingFound = false
+            messageEntries.append(MessageEntry(line: "Unknown vessel collision."))
+        }
+        
+        if (klingonsInQuadrant != 0){klingonsShooting()} // Klingons shoot back
+        if (romulansInQuadrant != 0){romulansShooting()} // Romulans shoot back}
       }
     }
-    //BEGIN MOVING STARSHIP
-    quadrant[enterpriseSectorRow][enterpriseSectorCol] = "   "
-    let cindex = Int(course)
-    stepX = C[cindex + 1][1] - C[cindex][1]
-    stepX *= (course - Double(Int(course)))
-    stepX += C[cindex][1]
-    print("stepX = \(stepX) cindex = \(cindex) course = \(course) C[cindex + 1][1] = \(C[cindex + 1][1]) C[cindex][1] = \(C[cindex][1]) Double(Int(course)) = \(Double(Int(course)))")
-    stepY = C[cindex + 1][2] - C[cindex][2]
-    stepY *= (course - Double(Int(course)))
-    stepY += C[cindex][2]
-    print("stepY = \(stepY) cindex = \(cindex) course = \(course) C[cindex + 1][2] = \(C[cindex + 1][2]) C[cindex][2] = \(C[cindex][2]) Double(Int(course)) = \(Double(Int(course)))")
-    x = enterpriseSectorRow;    y = enterpriseSectorCol
-    q4 = enterpriseQuadrantRow
-    q5 = enterpriseQuadrantCol
-    print("x = \(x) y = \(y) q4 = \(q4) q5 = \(q5)")
-    for _ in 1...noOfSteps {
-      print("Int(stepX) = \(Int(stepX)) Int(stepY) = \(Int(stepY))")
-      print("Before: Quadrant = \(enterpriseQuadrantRow),\(enterpriseQuadrantCol)  Sector = \(enterpriseSectorRow),\(enterpriseSectorCol)")
-      quadrant[enterpriseSectorRow][enterpriseSectorCol] = "   "
-      enterpriseSectorRow = Int(Double(enterpriseSectorRow) + stepX)
-      enterpriseSectorCol = Int(Double(enterpriseSectorCol) + stepY)
-      print("After: Quadrant = \(enterpriseQuadrantRow),\(enterpriseQuadrantCol)  Sector = \(enterpriseSectorRow),\(enterpriseSectorCol)")
-      if enterpriseSectorRow < 1 || enterpriseSectorRow > 8 || enterpriseSectorCol < 1 || enterpriseSectorCol > 8 {
-        exceededQuadantLimits()
-        //Need to unpack sector details of in a new quadrant
-        endOfMovement(warp: warp)
-        return
-      } else { //Not exceeded quadrant limits
-        if quadrant[enterpriseSectorRow][enterpriseSectorCol] == "   " {
-          enterpriseSectorRow = Int(enterpriseSectorRow)
-          enterpriseSectorCol = Int(enterpriseSectorCol)
-        } else {
-          enterpriseSectorRow = Int(Double(enterpriseSectorRow) - stepX)
-          enterpriseSectorCol = Int(Double(enterpriseSectorCol) - stepY)
-          messageEntries.append(MessageEntry(line: "WARP ENGINES SHUT DOWN AT SECTOR \(enterpriseSectorRow),\(enterpriseSectorCol) DUE TO BAD NAVIGATION"))
-          checkIfDocked()
-          break
-        }
-      }
-    }//End of noOfSteps loop
-    enterpriseSectorRow = Int(enterpriseSectorRow)
-    enterpriseSectorCol = Int(enterpriseSectorCol)
-    endOfMovement(warp: warp)
-  } //END OF courseControl
+    if nothingFound {
+      messageEntries.append(MessageEntry(line: "Torpedo missed all targets."))
+    }
+    return previousSector
+  }
+  // MARK: Damage and Repair Functions
   
-  mutating func cumulativeGalacticRecord (regionNameMap: Bool) {
+  /// <#Description#>
+  mutating func damageControl() {
+    if debug {print("damageControl(()")}
+    displayBlankLine()
+    if enterpriseDamage[Constants.SystemNumber.damageControl] >= 0.9 {
+      messageEntries.append(MessageEntry(line: "           DEVICE              STATE OF REPAIR                        "))
+      messageEntries.append(MessageEntry(line: "           -----------------------------------                        "))
+      var myString: String
+      for i in 1...9 {
+        let temp = Int(enterpriseDamage[i] * 100)
+        myString = "          " + systems[i]
+        myString = myString.padding(toLength: 35, withPad: " ", startingAt: 0)
+        myString = myString + String(temp) + "%"
+        myString = myString.padding(toLength: 60, withPad: " ", startingAt: 0)
+        messageEntries.append(MessageEntry(line: String(myString)))
+      }
+      displayBlankLine()
+    } else {
+      messageEntries.append(MessageEntry(line: "*** DAMAGE CONTROL REPORT NOT AVAILABLE ***"))
+    }
+    if enterpriseCondition == "DOCKED" {repairDamage()}
+  }
+  mutating func repairDamage() {
+    if debug {print("repairDamage(()")}
+  }
+  mutating func removeStarbase(starbaseCoordinates: (row: Int, col: Int)) {
+    if debug {print("removeStarbase()")}
+    for i in 1...basesRemaining {
+      if starbaseCoordinates.row == starbase[i][1] && starbaseCoordinates.col == starbase[i][1] {starbase[i].remove(at: i)}
+    }
+  }
+  
+  // MARK: Computer Functions
+  mutating func cumulativeGalacticRecord(regionNameMap: Bool) {
+    if debug {print("cumulativeGalacticRecord()")}
     var count: Int
     var myString: String
     let spaces = "            "
     var temp: Substring
-    if debug {print("cumulativeGalacticRecord()")}
     displayBlankLine()
     if regionNameMap {
       messageEntries.append(MessageEntry(line: "GALAXY REGION MAP"))
@@ -435,22 +1105,22 @@ struct Game {
       messageEntries.append(MessageEntry(line: "        ----- ----- ----- ----- ----- ----- ----- -----      "))
       for i in 0...7 {
         myString = ""
-        count = galaxyQuadrantNames[0][i].count
+        count = gQuadrantNames[0][i].count
         temp = spaces.prefix((24 - count)/2)
-        myString = temp + galaxyQuadrantNames[0][i]
+        myString = temp + gQuadrantNames[0][i]
         temp = spaces.prefix(24 - myString.count)
         myString = myString + temp
-        count = galaxyQuadrantNames[1][i].count
+        count = gQuadrantNames[1][i].count
         temp = spaces.prefix((24 - count)/2)
-        myString = myString + temp + galaxyQuadrantNames[1][i]
+        myString = myString + temp + gQuadrantNames[1][i]
         myString = String(i + 1) + "  " + myString
         myString = myString.padding(toLength: 50, withPad: " ", startingAt: 0)
         messageEntries.append(MessageEntry(line: String(myString)))
         messageEntries.append(MessageEntry(line: "        ----- ----- ----- ----- ----- ----- ----- -----      "))
       }
     } else {
-      messageEntries.append(MessageEntry(line: "CUMULATIVE RECORD OF GALAXY FOR QUADRANT \(enterpriseQuadrantRow),\(enterpriseQuadrantCol)"))
-      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "CUMULATIVE RECORD OF GALAXY FOR QUADRANT \(quadrantCoordinates.0),\(quadrantCoordinates.1)"))
+      messageEntries.append(MessageEntry(line: "Results of all Short and Long Range Scans."))
       messageEntries.append(MessageEntry(line: "          1     2     3     4     5     6     7     8        "))
       messageEntries.append(MessageEntry(line: "        ----- ----- ----- ----- ----- ----- ----- -----      "))
       for i in 1...8 {
@@ -465,8 +1135,7 @@ struct Game {
         temp$ = String(i) + " "
         for j in 1...8 {
           if i > 0 && i < 9 && j > 0 && j < 9 {
-            if debug {lrs[j] = explored[i][j]}
-            if !debug {lrs[j] = galaxy[i][j]}
+            lrs[j] = explored[i][j]
           }//END if
         }//NEXT j
         for l in 1...8 {
@@ -481,687 +1150,255 @@ struct Game {
         messageEntries.append(MessageEntry(line: temp$))
         messageEntries.append(MessageEntry(line: "        ----- ----- ----- ----- ----- ----- ----- -----      "))
       }//NEXT i
+      messageEntries.append(MessageEntry(line: "3-digit codes: number of Klingons, Starbases and Stars. Example, 217 = 2 Klingons, 1 Starbase and 7 Stars."))
     }
+    getCommand()
   }
-  
-  mutating func damageControl () {//5680 REM DAMAGE CONTROL
-    if debug {print("damageControl()")}
-    displayBlankLine()
-    if damage[6] >= 0 {
-      messageEntries.append(MessageEntry(line: "DEVICE              STATE OF REPAIR                        "))
-      messageEntries.append(MessageEntry(line: "-----------------------------------                        "))
-      var myString: String
-      for i in 1...8 {
-        myString = " " + systems[i]
-        myString = myString.padding(toLength: 25, withPad: " ", startingAt: 0)
-        myString = myString + String(format:"%.2f",damage[i])
-        myString = myString.padding(toLength: 60, withPad: " ", startingAt: 0)
-        messageEntries.append(MessageEntry(line: String(myString)))
-      }
-      displayBlankLine()
-    } else {
-      messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORT NOT AVAILABLE"))
-    }
-    if enterpriseCondition == "DOCKED" {repairDamage()}
-  } //END OF damageControl
-  
-  mutating func displayBlankLine() {
-    messageEntries.append(MessageEntry(line: "                                                            "))
-  }
-  
-  
-  mutating func distanceToShip (index: Int) -> Double {
-    if debug {print("distanceToShip()")}
-    let dx = Double(klingons[index][1] - enterpriseSectorRow)
-    let dy = Double(klingons[index][2] - enterpriseSectorCol)
-    return (dx * dx) + (dy * dy).squareRoot()
-  }
-  
-  mutating func endOfMovement (warp: Double) {
-    var dayIncrement = 1.0
-    if debug {print("endOfMovement()")}
-    quadrant[enterpriseSectorRow][enterpriseSectorCol] = "<*>"
-    consumeEnergy()
-    if warp < 1 {
-      dayIncrement = 0.1 * Double(Int(10 * warp))
-    }
-    enterpriseStardate = enterpriseStardate + Int(dayIncrement)
-    if enterpriseStardate > enterpriseOriginalStardate + enterpriseDaysLeft {
-      gameOver(reason: "Time")
-    }
-    checkIfDocked()
-    shortRangeScan()
-  }
-  
-  mutating func exceededQuadantLimits () {
-    if debug {print("exceededQuadantLimits()")}
-    x = 8 * enterpriseQuadrantRow + x + (noOfSteps * Int(stepX))
-    y = 8 * enterpriseQuadrantCol + y + (noOfSteps * Int(stepY))
-    enterpriseQuadrantRow = Int(x / 8)
-    enterpriseQuadrantCol = Int(y / 8)
-    enterpriseSectorRow = Int(x - enterpriseQuadrantRow * 8)
-    enterpriseSectorCol = Int(y - enterpriseQuadrantCol * 8)
-    if (enterpriseSectorRow == 0) {
-      enterpriseQuadrantRow = enterpriseQuadrantRow - 1
-      enterpriseSectorRow = 8
-    }
-    if (enterpriseSectorCol == 0) {
-      enterpriseQuadrantCol = enterpriseQuadrantCol - 1
-      enterpriseSectorCol = 8
-    }
-    crossingPerimeter = false
-    if enterpriseQuadrantRow < 1 {
-      crossingPerimeter = true
-      enterpriseQuadrantRow = 1
-      enterpriseSectorRow = 1
-    }
-    if enterpriseQuadrantRow > 8 {
-      crossingPerimeter = true
-      enterpriseQuadrantRow = 8
-      enterpriseSectorRow = 8
-    }
-    if enterpriseQuadrantCol < 1 {
-      crossingPerimeter = true
-      enterpriseQuadrantCol = 1
-      enterpriseSectorCol = 1
-    }
-    if enterpriseQuadrantCol > 8 {
-      crossingPerimeter = true
-      enterpriseQuadrantCol = 8
-      enterpriseSectorCol = 8
-    }
-    if crossingPerimeter {
-      messageEntries.append(MessageEntry(line: "LT. UHURA REPORTS: MESSAGE FROM STARFLEET COMMAND:"))
-      messageEntries.append(MessageEntry(line: "PERMISSION TO ATTEMPT CROSSING OF GALACTIC PERIMETER IS HEREBY DENIED. SHUT DOWN YOUR ENGINES."))
-      messageEntries.append(MessageEntry(line: "CHIEF ENGINEER SCOTT REPORTS:"))
-      messageEntries.append(MessageEntry(line: "WARP ENGINES SHUT DOWN AT SECTOR \(enterpriseSectorRow),\(enterpriseSectorCol) OF QUADRANT \(enterpriseQuadrantRow),\(enterpriseQuadrantCol)."))
-      if (enterpriseStardate > enterpriseOriginalStardate + enterpriseDaysLeft) {
-        gameOver(reason: "Time")
-      }
-    }
-    //Still in same quadrant?
-    if 8 * enterpriseQuadrantRow + enterpriseQuadrantCol != 8 * q4 + q5 {
-      //Print entering new Quadrant
-      //Get Quadrant name and region
-      if enterpriseQuadrantRow <= 4 {
-        enterpriseQuadrantName = galaxyQuadrantNames[0][enterpriseQuadrantRow - 1]
-      } else {
-        enterpriseQuadrantName = galaxyQuadrantNames[1][enterpriseQuadrantRow - 1]
-      }
-      if enterpriseQuadrantCol <= 4 {
-        enterpriseQuadrantName = enterpriseQuadrantName + galaxySectorNames[enterpriseQuadrantCol - 1 ]
-      } else {
-        enterpriseQuadrantName = enterpriseQuadrantName + galaxySectorNames[enterpriseQuadrantCol - 5 ]
-      }
-      messageEntries.append(MessageEntry(line: "Now entering Galactic Quadrant \(enterpriseQuadrantName) . . ."))
-      //Get contents of Quadrant
-      damageFactor = 0.5 * Double.random(in: 0.01...0.99)
-      quadrant = Array(repeating: Array(repeating: "   ", count: 9), count: 9)
-      klingonsInQuadrant = galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol]/100
-      temp = galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] - (klingonsInQuadrant * 100)
-      basesInQuadrant = temp/10
-      starsInQuadrant = temp - (basesInQuadrant * 10)
-      //Set Condition
-      if klingonsInQuadrant > 0 {
-        messageEntries.append(MessageEntry(line: "*** COMBAT AREA - CONDITION RED ***"))
-        enterpriseCondition = "RED"
-        if enterpriseShields < 200 {
-          //1580 PRINT"   SHIELDS DANGEROUSLY LOW"
-          messageEntries.append(MessageEntry(line: "*** SHIELDS DANGEROUSLY LOW ***"))
-        }
-      }
-      //Possibly adding to quadrant when it hasn't changed?
-      if debug {print("Entering new quadrant?")}
-      quadrant[enterpriseSectorRow][enterpriseSectorCol] = "<*>"
-      if klingonsInQuadrant > 0 {
-        for i in 1...klingonsInQuadrant {
-          let coordinates = findEmptyPlaceinQuadrant()
-          let R1 = coordinates.y
-          let R2 = coordinates.x
-          quadrant[R1][R2] = "+K+"
-          klingons[i][1] = R1
-          klingons[i][2] = R2
-          klingons[i][3] = Int(S9 * (0.5 * Double.random(in: 0.01..<1.0)))
-        }
-      }
-      if basesInQuadrant > 0 {
-        let coordinates = findEmptyPlaceinQuadrant()
-        let R1 = coordinates.y
-        let R2 = coordinates.x
-        baseRow = R1
-        baseCol = R2
-        quadrant[R1][R2] = ">!<"
-      }
-      for _ in 1...starsInQuadrant {
-        let coordinates = findEmptyPlaceinQuadrant()
-        let R1 = coordinates.y
-        let R2 = coordinates.x
-        quadrant[R1][R2] = " * "
-      }
-      //Do nothing?
-      checkIfDocked()
-    }
-  }
-  
-  mutating func findEmptyPlaceinQuadrant() -> (y: Int, x: Int) {
-    // generate 2 random coordinates, and check if quadrant cell is empty.
-    //If empty space is found, returns the coordinates
-    var found = false
-    var b = 0
-    var a = 0
-    if debug {print("findEmptyPlaceinQuadrant()")}
-    while (!found) {
-      b = Int.random(in: 1...8)
-      a = Int.random(in: 1...8)
-      found = compareStringInQuadrant(A$: "   ", y: b, x: a)
-    }
-    return (b, a)
-  } //END OF findEmptyPlaceinQuadrant
-  
-  mutating func firePhasers (unitsToFire: String) {
-    var hits = 0
-    var hits1 = 0.0
-    var rangeA = 0.0
-    var rangeB = 0.0
-    var range = 0.0
-    var unitsFired = 0
-    if debug {print("firePhasers()")}
-    displayBlankLine()
-    if damage[4] < 0 {
-      messageEntries.append(MessageEntry(line: "PHASERS INOPERATIVE"))
-    } else {
-      if klingonsInQuadrant == 0 {
-        messageEntries.append(MessageEntry(line: "SCIENCE OFFICER SPOCK REPORTS:"))
-        messageEntries.append(MessageEntry(line: "SENSORS SHOW NO ENEMY SHIPS IN THIS QUADRANT"))
-      } else {
-        if damage[8] < 0 {
-          messageEntries.append(MessageEntry(line: "COMPUTER FAILURE HAMPERS ACCURACY"))
-        }
-        messageEntries.append(MessageEntry(line: "PHASERS LOCKED ON TARGET"))
-        unitsFired = Int(unitsToFire) ?? 0
-        enterpriseEnergy = enterpriseEnergy - unitsFired
-        if damage[7] < 0 {
-          unitsFired = Int(Double(unitsFired) * Double.random(in: 0.01...0.99))
-        }
-        hits1 = Double(unitsFired / klingonsInQuadrant)
-        for i in 1...3 {
-          if klingons[i][3] > 0 {
-            rangeA = Double((klingons[i][1] - enterpriseSectorRow) * (klingons[i][1] - enterpriseSectorRow))
-            rangeB = Double((klingons[i][2] - enterpriseSectorCol) * (klingons[i][2] - enterpriseSectorCol))
-            range = (rangeA + rangeB).squareRoot()
-            hits = Int((hits1 / Double(range)) * (Double.random(in: 0.01...0.99) + 2))
-            if hits <= (Int(Double(0.15) * Double(klingons[i][3]))) {
-              messageEntries.append(MessageEntry(line: "SENSORS SHOW NO DAMAGE TO ENEMY AT \(klingons[i][1]),\(klingons[i][2])"))
-            }
-            klingons[i][3] = klingons[i][3] - hits
-            messageEntries.append(MessageEntry(line: "\(hits) UNIT HITS TO KLINGON AT SECTOR \(klingons[i][1]),\(klingons[i][2])"))
-            if klingons[i][3] <= 0 {
-              messageEntries.append(MessageEntry(line: "*** KLINGON DESTROYED ***"))
-              enterpriseCondition = checkShipStatus()
-              klingonsInQuadrant = klingonsInQuadrant - 1
-              klingonsRemaining = klingonsRemaining - 1
-              quadrant[klingons[i][1]][klingons[i][2]] = "   "
-              klingons[i][3] = 0
-              galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] -= 100
-              explored[enterpriseQuadrantRow][enterpriseQuadrantCol] = galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol]
-              if klingonsRemaining == 0 {
-                gameOver(reason: "Success")
-              }
-            } else {
-              messageEntries.append(MessageEntry(line: "SENSORS SHOW \(klingons[i][3]) UNITS REMAINING"))
-            }
-            if klingonsInQuadrant > 0 {klingonsShooting()}
-          }
-        }
-      }
-    }
-  } //END OF firePhasers
-  
-  mutating func fireTorpedoes (direction: Double) {
-    var course = 0.0
-    var x3 = 0
-    var y3 = 0
-    var klingonDestroyed = 0
-    if debug {print("fireTorpedoes()")}
-    if enterpriseTorpedoes <= 0 {
-      messageEntries.append(MessageEntry(line: "ALL PHOTON TORPEDOES EXPENDED"))
-      return
-    }
-    if damage[5] < 0 {
-      messageEntries.append(MessageEntry(line: "PHOTON TUBES ARE NOT OPERATIONAL"))
-      return
-    }
-    course = Double(direction)
-    if course == 9 {//Course of 9 == 1
-      course = 1
-    }
-    //Check if course within range 1.0 to 8.0
-    if course < 1 || course >= 9 {//Not in range so message error and exit
-      messageEntries.append(MessageEntry(line: "LT. SULU REPORTS: INCORRECT COURSE DATA, SIR!"))
-      return
-    }
-    let cindex = Int(course)
-    stepX = C[cindex + 1][1] - C[cindex][1]
-    stepX *= (course - Double(Int(course)))
-    stepX += C[cindex][1]
-    enterpriseEnergy -= 2
-    enterpriseTorpedoes -= 1
-    stepY = C[cindex + 1][2] - C[cindex][2]
-    stepY *= (course - Double(Int(course)))
-    stepY += C[cindex][2]
-    x = enterpriseSectorRow
-    y = enterpriseSectorCol
-    messageEntries.append(MessageEntry(line: "TORPEDO TRACK:"))
-    while true {
-      x = Int(Double(x) + stepX)
-      y = Int(Double(y) + stepY)
-      x3 = Int(Double(x) + 0.5)
-      y3 = Int(Double(y) + 0.5)
-      if (x3 < 1) || (x3 > 8) || (y3 < 1) || (y3 > 8) {//Torpedo is out of bounds
-        messageEntries.append(MessageEntry(line: "TORPEDO MISSED!"))
-        break
-      }
-      messageEntries.append(MessageEntry(line: "----------> \(x3),\(y3)"))
-      if compareStringInQuadrant(A$: "   ", y: x3, x: y3) {
-        //Found clear space so carry on
-      } else {
-        if compareStringInQuadrant(A$: "+K+", y: x3, x: y3) {
-          //Found a Klingon
-          messageEntries.append(MessageEntry(line: "*** KLINGON DESTROYED ***"))
-          klingonsInQuadrant -= 1
-          if debug {print("docked = \(docked) enterpriseCondition = \(enterpriseCondition)")}
-          enterpriseCondition = checkShipStatus()
-          klingonsRemaining -= 1
-          if klingonsRemaining <= 0 {
-            gameOver(reason: "Success")
-            return
-          }
-          //Check which Klingon has been destroyed
-          for i in 1...3 {
-            if x3 == klingons[i][1] && y3 == klingons[i][2] {
-              klingons[i][3] = 0
-              klingonDestroyed = i
-            }
-          }
-          quadrant[x3][y3] = "   "
-          galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] -= 100
-          explored[enterpriseQuadrantRow][enterpriseQuadrantCol] = galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol]
-          break
-          
-        } else {
-          if compareStringInQuadrant(A$: " * ", y: x3, x: y3) {
-            messageEntries.append(MessageEntry(line: "STAR AT \(x3),\(y3) ABSORBED TORPEDO ENERGY"))
-            break
-          } else {
-            if compareStringInQuadrant(A$: ">!<", y: x3, x: y3) {
-              messageEntries.append(MessageEntry(line: "*** STARBASE DESTROYED ***"))
-              basesInQuadrant -= 1
-              basesRemaining -= 1
-              if basesRemaining > 0 || klingonsRemaining > enterpriseStardate - enterpriseOriginalStardate - enterpriseDaysLeft {
-                messageEntries.append(MessageEntry(line: "STARFLEET COMMAND REVIEWING YOUR RECORD TO CONSIDER COURT MARTIAL!"))
-                //shipDocked = false
-                quadrant[x3][y3] = "   "
-                galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol] -= 10
-                explored[enterpriseQuadrantRow][enterpriseQuadrantCol] = galaxy[enterpriseQuadrantRow][enterpriseQuadrantCol]
-                break
-              } else {
-                gameOver(reason: "Starbase")
-              }
-            }
-          }
-        }
-        klingonsShooting()
-      }
-    }
-  } //END OF fireTorpedoes
-  
-  mutating func gameOver (reason: String) {
-    if debug {print("gameOver()")}
-    messageEntries.append(MessageEntry(line: "GAME OVER"))
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "IT IS STARDATE \(enterpriseStardate)"))
-    switch reason {
-    case "Destroyed" :
-      displayBlankLine()
-    case "Starbase" :
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "THAT DOES IT, CAPTAIN! YOUR ARE HEREBY RELIEVED OF COMMAND AND SENTENCED TO 99 STARDATES OF HARD LABOUR AT CYGNUS 12!!"))
-    case "Resigned" :
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "THERE WERE \(klingonsRemaining) KLINGON BATTLE CRUISERS LEFT AT THE END OF YOUR MISSION."))
-    case "Time" :
-      displayBlankLine()
-    case "Success" :
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "CONGRATULATIONS CAPTAIN! THE LAST KLINGON BATTLE CRUISER MENACING THE FEDERATION HAS BEEN DESTROYED."))
-      displayBlankLine()
-      efficiency = Double((klingonsStarting)/(enterpriseOriginalStardate - enterpriseStardate))
-      efficiency = 1000 * (efficiency * efficiency)
-      messageEntries.append(MessageEntry(line: "YOUR EFFICIENCY RATING IS \(efficiency)"))
-      if basesRemaining > 0 {
-        messageEntries.append(MessageEntry(line: "THE FEDERATION IS IN NEED OF A NEW STARSHIP COMMANDER FOR A SIMILAR MISSION -- IF THERE IS A VOLUNTEER LET HIM STEP FORWARD."))
-      }
-    default :
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "Some other reason???"))
-    }
-  }
-  
-  mutating func getDirection(m:Int,n:Int,StartingCourse:Double) {
-    var Direction = 0.00
-    if debug {print("getDirection()")}
-    if abs(m) > abs(n) {
-      if debug {print("StartingCourse",StartingCourse)}
-      if debug {print("n and abs(n)",n,abs(n))}
-      if debug {print("m and abs(m)",m,abs(m))}
-      Direction = StartingCourse+Double((abs(n)/abs(m)))
-      if debug {print("Direction",Direction)}
-      if debug {print("(abs(n)/abs(m)",(abs(n)/abs(m)))}
-    }
-    else {
-      if debug {print("StartingCourse",StartingCourse)}
-      if debug {print("n and abs(n)",n,abs(n))}
-      if debug {print("m and abs(m)",m,abs(m))}
-      Direction = StartingCourse+Double(((abs(n)-abs(m)+abs(n))/abs(n)))
-      if debug {print("Direction",Direction)}
-      if debug {print("(abs(n)-abs(m)+abs(n))/abs(n)",(abs(n)-abs(m)+abs(n))/abs(n))}
-    }
-    temp$ = String(format:"%.2f",Direction)
-    messageEntries.append(MessageEntry(line: "DIRECTION = \(temp$)"))
-  }
-  
-  mutating func getDistance() -> Bool  {
-    if debug {print("getDistance()")}
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "DIRECTION/DISTANCE CALCULATOR:"))
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "YOU ARE AT QUADRANT \(enterpriseQuadrantRow),\(enterpriseQuadrantCol) SECTOR \(enterpriseSectorRow),\(enterpriseSectorCol)"))
-    print("PLEASE ENTER INITIAL COORDINATES (X,Y): ")
-    let y1 = Int(input) ?? 0
-    let x1 = Int(input) ?? 0
-    print("  FINAL COORDINATES (X,Y): ");
-    let y2 = Int(input) ?? 0
-    let x2 = Int(input) ?? 0
-    if (checkValidCoordinates(n:x1) && checkValidCoordinates(n:y1) && checkValidCoordinates(n:x2) && checkValidCoordinates(n:2)) {
-      getDistanceAndDirection(W1:y2,X:x2,C1:y1,A:x1);
-      return true;
-    }
-    else {
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "*** WRONG COORDINATES ***"))
-      return false;
-    }
-  }
-  
-  mutating func checkValidCoordinates(n:Int) -> Bool {
-    if debug {print("checkValidCoordinates()")}
-    if (n  >= 1 && n <= 8) {
-      return true;
-    }
-    return false;
-  }
-  
-  mutating func getDistanceAndDirection(W1:Int,X:Int,C1:Int,A:Int) -> Bool{
-    if debug {print("getDistanceAndDirection()")}
-    var Distance: Double
-    let X = X-A
-    let A = C1-W1
-    if (X<0) {
-      if(A>0) {
-        getDirection(m:A,n:X,StartingCourse:3)  // A>0 and X < 0
-      }
-      else if(X != 0) {             // else would be enough here (X<0 and A <=0)
-        getDirection(m:X,n:A,StartingCourse:5)
-      }
-    }
-    else {
-      if (A<0) {              // case X>= 0 and A < 0
-        getDirection(m:A,n:X,StartingCourse:7)
-      }
-      else if(X>0) {            // the only case where this is not true is X = 0
-        getDirection(m:X,n:A,StartingCourse:1)
-      }
-      else if (A==0) {            // so X = 0 and A = 0
-        getDirection(m:X,n:A,StartingCourse:5)
-      }
-      else if (A > 0) {          // so X = 0 and A > 0
-        getDirection(m:X,n:A,StartingCourse:1)
-      }
-    }
-    Distance = Double((X * X)+(A * A)).squareRoot()
-    temp$ = String(format:"%.2f",Distance)
-    messageEntries.append(MessageEntry(line: "DISTANCE = \(temp$)"))
-    return true
-  }
-  
-  mutating func getPhotonTorpedoCourse () {
-    if debug {print("getPhotonTorpedoCourse()")}
-    var s = ""
-    if(klingonsInQuadrant <= 0) {
-      messageEntries.append(MessageEntry(line: "SCIENCE OFFICER SPOCK REPORTS:"))
-      messageEntries.append(MessageEntry(line: "SENSORS SHOW NO ENEMY SHIPS IN THIS QUADRANT"))
-      return
-    }
-    if (klingonsInQuadrant > 1) {
-      s = "S"
-    }
-    messageEntries.append(MessageEntry(line: "FROM ENTERPRISE TO KLINGON BATTLE CRUISER\(s):"))
-    for i in 1...3 {
-      if klingons[i][3] > 0 {
-        displayBlankLine()
-        messageEntries.append(MessageEntry(line: "KLINGON AT \(klingons[i][1]),\(klingons[i][2]):"))
-        getDistanceAndDirection(W1:klingons[i][1],X:klingons[i][2],C1:enterpriseSectorRow,A:enterpriseSectorCol)
-      }
-    }
-  }// END OF getPhotonTorpedoCourse
-  
-  mutating func getStarbaseNavData()  {
-    if debug {print("getStarbaseNavData()")}
-    if (basesInQuadrant > 0) {
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "FROM ENTERPRISE TO STARBASE:"))
-      getDistanceAndDirection(W1:baseRow,X:baseCol,C1:enterpriseSectorRow,A:enterpriseSectorCol);   // dest, origin
-    } else {
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "MR. SPOCK REPORTS:"))
-      messageEntries.append(MessageEntry(line: "SENSORS SHOW NO STARBASES IN THIS QUADRANT."))
-    }
-  }// END OF getStarbaseNavData()
-  
-  
-  mutating func insertInQuadrant (A$: String, y: Int,x: Int) {
-    quadrant[y][x] = A$
-  }
-  
-  mutating func klingonsShooting () -> Bool {
-    var klingonEnergy = 0.00
-    var hits = 0.00
-    if debug {print("klingonsShooting()")}
-    messageEntries.append(MessageEntry(line: "KLINGON SHIPS ATTACK THE ENTERPRISE"))
-    if enterpriseCondition == "DOCKED" {
-      messageEntries.append(MessageEntry(line: "STARBASE SHIELDS PROTECT THE ENTERPRISE"))
-    } else {
-      for i in 1...klingonsInQuadrant {
-        klingonEnergy = Double(klingons[i][3])
-        if klingonEnergy > 0 {
-          hits = (klingonEnergy / distanceToShip(index: i)) * (2 + Double.random(in:0.00...0.99)) + 1
-          enterpriseShields = enterpriseShields - Int(hits)
-          klingons[i][3] = Int(klingonEnergy/(3 * Double.random(in:0.00...0.99)))
-          messageEntries.append(MessageEntry(line: "\(Int(hits)) UNIT HIT ON ENTERPRISE FROM KLINGON AT SECTOR \(klingons[i][1]),\(klingons[i][2])"))
-          if enterpriseShields < 0 {
-            messageEntries.append(MessageEntry(line: "ENTERPRISE DESTROYED - GAME OVER"))
-            enterpriseDestroyed = true
-            gameOver(reason: "Destroyed")
-          } else {
-            messageEntries.append(MessageEntry(line: "SHIELDS DOWN TO \(enterpriseShields) UNITS"))
-            //DAMAGE DUE TO KLINGON HITS
-            if hits > 19 && (enterpriseShields == 0 || (Int.random(in: 1...10) < 6 && (hits / Double(enterpriseShields)) > 0.02 )) {
-              let systemDamaged = Int.random(in: 1...8)
-              let tempDamage = (hits / Double(enterpriseShields)) - 0.5 * Double.random(in: 0.00...0.99)
-              damage[systemDamaged] = damage[systemDamaged] - tempDamage
-              messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemDamaged]) DAMAGED BY THE HIT"))
-            } //DAMAGE DUE TO KLINGON HITS
-          }
-        }
-      }
-    }
-    return enterpriseDestroyed
-  }
-  
-  mutating func longRangeScan () {
-    if debug {print("longRangeScan()")}
-    messageEntries.append(MessageEntry(line: "                                                            "))
-    if damage[3] < 0 {
-      messageEntries.append(MessageEntry(line: "*** LONG RANGE SENSORS ARE OUT ***"))
-    } else {
-      messageEntries.append(MessageEntry(line: "LONG RANGE SCAN FROM QUADRANT \(enterpriseQuadrantRow),\(enterpriseQuadrantCol)"))
-      messageEntries.append(MessageEntry(line: "-------------------"))
-      for i in enterpriseQuadrantRow - 1...enterpriseQuadrantRow + 1 {
-        lrs[1] = -1
-        lrs[2] = -2
-        lrs[3] = -3
-        for j in enterpriseQuadrantCol - 1...enterpriseQuadrantCol + 1 {
-          if i > 0 && i < 9 && j > 0 && j < 9 {
-            lrs[j - enterpriseQuadrantCol + 2] = galaxy[i][j]
-            if debug {print("i = \(i) j = \(j) galaxy[i][j] = \(galaxy[i][j])")}
-            explored[i][j] = galaxy[i][j]
-          }
-        }
-        temp$ = ""
-        for l in 1...3 {
-          temp$ = temp$ + ": "
-          if lrs[l] < 0 {
-            temp$ = temp$ + "*** "
-          } else {
-            temp$ = temp$ + String(lrs[l] + 1000).suffix(3) + " "
-          }
-        }
-        temp$ = temp$ + ":"
-        messageEntries.append(MessageEntry(line: temp$))
-        messageEntries.append(MessageEntry(line: "-------------------"))
-      }
-    }
-  } //END OF longRangeScan
-  
-  mutating func repairDamage () {
-    var timeToRepair: Double
-    if debug {print("repairDamage()")}
-    timeToRepair = 0.0
-    for i in 1...8 {
-      if damage[i] < 0 {
-        timeToRepair += 0.1
-      }
-    }
-    if timeToRepair == 0 {
-      messageEntries.append(MessageEntry(line: "NO REPAIRS NEEDED"))
-    } else {
-      timeToRepair += damageFactor
-      if timeToRepair >= 1 {timeToRepair = 0.9}
-      messageEntries.append(MessageEntry(line: "TECHNICIANS STANDING BY TO EFFECT REPAIRS TO YOUR SHIP     "))
-      messageEntries.append(MessageEntry(line: "ESTIMATED TIME TO REPAIR: \(timeToRepair)) STARDATES."))
-      for i in 1...8 {
-        if damage[i] < 0 {
-          damage[i] = 0
-        }
-      }
-      enterpriseStardate += enterpriseStardate + Int(timeToRepair + 0.1)
-      messageEntries.append(MessageEntry(line: "DEVICE              STATE OF REPAIR                        "))
-      messageEntries.append(MessageEntry(line: "-----------------------------------                        "))
-      var myString: String
-      for i in 1...8 {
-        myString = " " + systems[i]
-        myString = myString.padding(toLength: 25, withPad: " ", startingAt: 0)
-        myString = myString + String(damage[i])
-        myString = myString.padding(toLength: 60, withPad: " ", startingAt: 0)
-        messageEntries.append(MessageEntry(line: String(myString)))
-      }
-    }
-    
-  }
-  
-  mutating func shieldControl () {
-    if debug {print("shieldControl()")}
-    if damage[7] < 0 {
-      messageEntries.append(MessageEntry(line: "*** SHIELD CONTROL INOPERABLE ***"))
-    } else {
-    }
-    //
-    displayBlankLine()
-    messageEntries.append(MessageEntry(line: "SHIELD CONTROL HAS NOT YET BEEN COMMISSIONED"))
-    displayBlankLine()
-  } //END OF shieldControl
-  
-  mutating func shortRangeScan () {
-    if debug {print("shortRangeScan()")}
-    enterpriseCondition = checkShipStatus()
-    if damage[2] < 0 {
-      messageEntries.append(MessageEntry(line: "*** SHORT RANGE SENSORS ARE OUT ***"))
-    } else {
-      displayBlankLine()
-      messageEntries.append(MessageEntry(line: "SHORT RANGE SCAN FOR QUADRANT \(enterpriseQuadrantRow),\(enterpriseQuadrantCol)"))
-      messageEntries.append(MessageEntry(line: "                                                            "))
-      messageEntries.append(MessageEntry(line: "------------------------                                    "))
-      var mySubstring: Substring
-      var myString: String
-      mySubstring = ""
-      for i in 1...8 {
-        mySubstring = ""
-        for j in 1...8 {
-          mySubstring = mySubstring + quadrant[i][j]
-        }
-        switch i{
-        case 1:
-          mySubstring = mySubstring + "  STARDATE \(enterpriseStardate)"
-        case 2:
-          mySubstring = mySubstring + "  CONDITION \(enterpriseCondition)"
-        case 3:
-          mySubstring = mySubstring + "  QUADRANT \(enterpriseQuadrantRow),\(enterpriseQuadrantCol)"
-        case 4:
-          mySubstring = mySubstring + "  SECTOR \(enterpriseSectorRow),\(enterpriseSectorCol)"
-        case 5:
-          mySubstring = mySubstring + "  PHOTON TORPEDOES \(enterpriseTorpedoes)"
-        case 6:
-          mySubstring = mySubstring + "  ENERGY \(enterpriseEnergy + enterpriseShields)"
-        case 7:
-          mySubstring = mySubstring + "  SHIELDS \(enterpriseShields)"
-        case 8:
-          mySubstring = mySubstring + "  KLINGONS REMAINING \(klingonsRemaining)"
-        default:
-          print("Error")
-        }
-        myString = mySubstring.padding(toLength: 60, withPad: " ", startingAt: 0)
-        messageEntries.append(MessageEntry(line: String(myString)))
-      }
-      messageEntries.append(MessageEntry(line: "------------------------                                    "))
-    }
-  } //END OF shortRangeScan
-  
   mutating func statusReport() {
-    var s = "left:"
     if debug {print("statusReport()")}
+    var s = " remaining."
     displayBlankLine()
     messageEntries.append(MessageEntry(line: "STATUS REPORT:                                              "))
     displayBlankLine()
-    if klingonsRemaining > 1 {
-      s = "s left:"
+    if klingonsRemaining > 1 {s = "s remaining."}
+    messageEntries.append(MessageEntry(line: "\(klingonsRemaining) Klingon\(s) "))
+    if romulansRemaining > 0 {
+      s = " remaining."
+      if romulansRemaining > 1 {s = "s remaining."}
+      messageEntries.append(MessageEntry(line: "\(romulansRemaining) Romulan\(s) "))
     }
-    messageEntries.append(MessageEntry(line: "Klingon\(s) \(klingonsRemaining)"))
-    messageEntries.append(MessageEntry(line: "Mission must be completed in: \(enterpriseDaysLeft) stardates"))
+    messageEntries.append(MessageEntry(line: "Mission must be completed in \(daysLeft) Stardates."))
+    messageEntries.append(MessageEntry(line: "You have \(enterpriseEnergy + enterpriseShields) units of energy and \(enterpriseTorpedoes) torpedoes left."))
     if basesRemaining < 1 {
       messageEntries.append(MessageEntry(line: "Your stupidity has left you on your own in the Galaxy."))
-      messageEntries.append(MessageEntry(line: "You have no starbases left!"))
+      messageEntries.append(MessageEntry(line: "You have no Starbases left!"))
     } else {
       if basesRemaining == 1 {
         s = ""
       } else {
         s = "s"
       }
-      messageEntries.append(MessageEntry(line: "The Federation is maintaining \(basesRemaining) starbase\(s) in the Galaxy."))
+      messageEntries.append(MessageEntry(line: "The Federation is maintaining \(basesRemaining) Starbase\(s) in the Galaxy."))
+    }
+    getCommand()
+  }
+  mutating func getEnemyShipData(){
+    if debug {print("getEnemyShipData()")}
+    var s = ""
+    displayBlankLine()
+    if klingonsInQuadrant <= 0 && romulansInQuadrant <= 0 {
+      messageEntries.append(MessageEntry(line: "SCIENCE OFFICER SPOCK REPORTS:"))
+      messageEntries.append(MessageEntry(line: "Sensors show no enemy ships in this Quadrant."))
+      return
+    } else {
+      if (klingonsInQuadrant > 1) {
+        s = "s"
+      }
+      messageEntries.append(MessageEntry(line: "Enemy ship\(s) information:"))
+      if klingonsInQuadrant > 0 {
+        for i in 1...klingonsInQuadrant {
+          displayBlankLine()
+          messageEntries.append(MessageEntry(line: "Klingon at Sector \(klingons[i][1]),\(klingons[i][2]): Estimated fire power \(klingons[i][3]) units."))
+        }
+      }
+      if romulansInQuadrant > 0 {
+        for i in 1...romulansInQuadrant {
+          // Only display energy if not cloaked
+          if romulans[i][4] == 0 {
+            displayBlankLine()
+            messageEntries.append(MessageEntry(line: "Romulan at Sector \(romulans[i][2]),\(romulans[i][3]): Estimated fire power \(romulans[i][5]) units."))
+          } else {
+            messageEntries.append(MessageEntry(line: "Romulan vessel somewhere in this Quadrant but location unknown. Estimated fire power \(romulans[i][5]) units."))
+          }
+        }
+      }
+    }
+    getCommand()
+  }
+  mutating func getStarbaseNavData() {
+    if debug {print("getStarbaseNavData()")}
+    displayBlankLine()
+    if basesRemaining > 1 {messageEntries.append(MessageEntry(line: "The Federation is maintaining \(basesRemaining) starbases in the Galaxy."))}
+    else {messageEntries.append(MessageEntry(line: "The Federation is maintaining 1 starbase in the Galaxy."))}
+    for i in 1...basesRemaining {
+      displayBlankLine()
+      messageEntries.append(MessageEntry(line: "Starbase \(i) at Quadrant \(starbase[i][0]),\(starbase[i][1]). Condition \(condition[starbase[i][2]])."))
+      messageEntries.append(MessageEntry(line: " Repair Efficiency \(starbase[i][3])%. Energy \(starbase[i][4]) units. Photon Torpedoes \(starbase[i][5])."))
+    }
+    if debug {
+      for  i in 0...6 {
+        for j in 0...5 {
+              print("\(i), \(j), \(starbase[i][j])")
+
+            }
+        print(galaxy[starbase[i][0]][starbase[i][1]])
+      }
+    }
+    getCommand()
+  }
+  // MARK: Enemy Ship Functions
+  mutating func klingonsShooting () -> Bool {
+    if debug {print("klingonsShooting()")}
+    var klingonEnergy = 0.00
+    var hits = 0.00
+    displayBlankLine()
+    if enterpriseCondition == "DOCKED" {
+      messageEntries.append(MessageEntry(line: "*** STARBASE SHIELDS PROTECT THE ENTERPRISE ***"))
+    } else {
+      for i in 1...klingonsInQuadrant {
+        klingonEnergy = Double(klingons[i][3])
+        if debug {print("Klingon Energy: \(klingonEnergy)")}
+        if klingonEnergy > 0 {
+          hits = (klingonEnergy / distanceToShip(index: i)) // Hits based on distance to Enterprise
+          if debug {print("Hits = \(hits) based on klingonEnergy \(klingonEnergy) and distanceToShip \(distanceToShip(index: i))")}
+          hits = hits * (2.00 * Double.random(in: 0.00...1)) // Random factor affects damage by up to twice the calculated value
+          if debug {print("Hits after damage factor of up to twice = \(hits) based on klingonEnergy \(klingonEnergy) and distanceToShip \(distanceToShip(index: i))")}
+          if debug {print("Klingon Energy: \(klingonEnergy)")}
+          if Int(hits) > 0 {
+            messageEntries.append(MessageEntry(line: "Klingon firing . . ."))
+            klingons[i][3] = Int(klingonEnergy/(3 + Double.random(in: 0.00...0.99))) // K[I][3] = Int(KlingonEnergy/(3+Double.random(in:0.00...0.99)));
+            if debug {print("klingons[i][3]: \(klingons[i][3])")}
+            messageEntries.append(MessageEntry(line: "\(Int(hits)) unit hit on Enterprise from Klingon at Sector \(klingons[i][1]),\(klingons[i][2])"))
+            enterpriseShields = enterpriseShields - Int(hits)
+            if enterpriseShields < 0 {
+              messageEntries.append(MessageEntry(line: "*** ENTERPRISE DESTROYED - GAME OVER ****"))
+              enterpriseDestroyed = true
+              endGame(reason: "Destroyed")
+            } else {
+              messageEntries.append(MessageEntry(line: "SHIELD CONTROL REPORTS: Shields down to \(enterpriseShields) units."))
+              //DAMAGE DUE TO KLINGON HITS
+              if hits > 19 && (enterpriseShields == 0 || (Int.random(in: 1...10) < 6 && (hits / Double(enterpriseShields)) > 0.02 )) {
+                let systemDamaged = Int.random(in: 1...9)
+                let tempDamage = (hits / Double(enterpriseShields)) - 0.5 * Double.random(in: 0.00...1)
+                if Int(tempDamage) <= 0 {enterpriseDamage[systemDamaged] = enterpriseDamage[systemDamaged] - 0.1}
+                else {enterpriseDamage[systemDamaged] = enterpriseDamage[systemDamaged] - tempDamage}
+                messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemDamaged]) damaged by hit - now at \(enterpriseDamage[systemDamaged] * 100)%."))
+              } //DAMAGE DUE TO KLINGON HITS
+            }
+          } else {
+            messageEntries.append(MessageEntry(line: "Klingon at Sector \(klingons[i][1]),\(klingons[i][2]) missed the Enterprise."))
+          }
+        }
+      }
+    }
+    return enterpriseDestroyed
+  }
+  mutating func romulansShooting () -> Bool {
+    if debug {print("romulansShooting()")}
+    var romulanEnergy = 0.00
+    var hits = 0.00
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "*** ROMULAN BIRD OF PREY DECLOAKING ****"))
+    if enterpriseCondition == "DOCKED" {
+      messageEntries.append(MessageEntry(line: "*** STARBASE SHIELDS PROTECT THE ENTERPRISE ***"))
+    } else {
+      romulanEnergy = Double(romulans[romulanVessel][5])
+      if romulanEnergy > 0 {
+        hits = (romulanEnergy / distanceToShip(index: romulanVessel)) // Hits based on distance to Enterprise
+        if debug {print("Hits = \(hits) based on romulanEnergy \(romulanEnergy) and distanceToShip \(distanceToShip(index: romulanVessel))")}
+        hits = hits * (2.00 * Double.random(in: 0.00...1)) // Random factor affects damage by up to twice the calculated value
+        // If hits <= 0, then the Romulan ship is out of energy and will not fire
+        if debug {print("Hits after damage factor of up to twice = \(hits) based on romulanEnergy \(romulanEnergy) and distanceToShip \(distanceToShip(index: romulanVessel))")}
+        enterpriseShields = enterpriseShields - Int(hits)
+        romulans[romulanVessel][5] -= Int(hits)
+        messageEntries.append(MessageEntry(line: "\(Int(hits)) unit hit on Enterprise from Romulan Warbird at Sector \(romulans[romulanVessel][2]),\(romulans[romulanVessel][3])"))
+        if enterpriseShields < 0 {
+          messageEntries.append(MessageEntry(line: "*** ENTERPRISE DESTROYED BY ROMULAN BIRD OF PREY - GAME OVER ****"))
+          enterpriseDestroyed = true
+          endGame(reason: "Destroyed")
+        } else {
+          messageEntries.append(MessageEntry(line: "SHIELD CONTROL REPORTS: Shields down to \(enterpriseShields) units."))
+          //DAMAGE DUE TO ROMULAN HITS
+          if hits > 19 && (enterpriseShields == 0 || (Int.random(in: 1...10) < 6 && (hits / Double(enterpriseShields)) > 0.02 )) {
+            let systemDamaged = Int.random(in: 1...9)
+            let tempDamage = (hits / Double(enterpriseShields)) - 0.5 * Double.random(in: 0.00...1)
+            if Int(tempDamage) <= 0 {enterpriseDamage[systemDamaged] = enterpriseDamage[systemDamaged] - 0.1}
+            else {enterpriseDamage[systemDamaged] = enterpriseDamage[systemDamaged] - tempDamage}
+            messageEntries.append(MessageEntry(line: "DAMAGE CONTROL REPORTS: \(systems[systemDamaged]) damaged by hit - now at \(enterpriseDamage[systemDamaged] * 100)%."))
+          } //DAMAGE DUE TO ROMULAN HITS
+        }
+      }
+    }
+    return enterpriseDestroyed
+  }
+  // MARK: Utility Functions
+  mutating func distanceToShip (index: Int) -> Double {
+    if debug {print("distanceToShip()")}
+    let dx = Double(klingons[index][1]) - Double(sectorCoordinates.0)
+    let dy = Double(klingons[index][2]) - Double(sectorCoordinates.1)
+    return ((dx * dx) + (dy * dy)).squareRoot()
+  }
+  mutating func getDebugData() {
+    if debug {print("getDebugData()")}
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "KLINGONS IN THIS QUADRANT"))
+    displayBlankLine()
+    if klingonsInQuadrant > 0 {
+      if debug {print("Klingons in Quadrant \(klingonsInQuadrant)")}
+      for i in 1...klingonsInQuadrant {
+        messageEntries.append(MessageEntry(line: "Klingon \(i) at Sector \(klingons[i][1]),\(klingons[i][2]) with \(klingons[i][3]) units of energy."))
+      }
+      displayBlankLine()
+    } else {
+      messageEntries.append(MessageEntry(line: "No Klingons in this Quadrant."))
+    }
+    displayBlankLine()
+    if romulansRemaining > 0 {
+        if debug {print("Romulans remaining \(romulansRemaining)")}
+        messageEntries.append(MessageEntry(line: "ROMULANS IN GALAXY"))
+      for i in 1...romulansRemaining {
+        displayBlankLine()
+        messageEntries.append(MessageEntry(line: "Romulan \(i) at Quadrant \(romulans[i][0]),\(romulans[i][1]). Energy \(romulans[i][5])."))
+      }
+    } else {
+      messageEntries.append(MessageEntry(line: "No Romulans in the Galaxy."))
+    }
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "GALACTIC MAP"))
+    displayBlankLine()
+    messageEntries.append(MessageEntry(line: "       1      2      3      4      5      6      7      8        "))
+    messageEntries.append(MessageEntry(line: "     ------ ------ ------ ------ ------ ------ ------ ------     "))
+    for i in 1...8 {
+      lrs[1] = -1
+      lrs[2] = -2
+      lrs[3] = -3
+      lrs[4] = -4
+      lrs[5] = -5
+      lrs[6] = -6
+      lrs[7] = -7
+      lrs[8] = -8
+      temp$ = String(i) + " "
+      for j in 1...8 {
+        if i > 0 && i < 9 && j > 0 && j < 9 {
+          lrs[j] = galaxy[i][j]
+        }//END if
+      }//NEXT j
+      for l in 1...8 {
+        temp$ = temp$ + ": "
+        if lrs[l] <= 0 {
+          temp$ = temp$ + "*** "
+        } else {
+          temp$ = temp$ + String(lrs[l] + 100000).suffix(4) + " "
+        }//END if
+      }//NEXT l
+      temp$ = temp$ + ":"
+      messageEntries.append(MessageEntry(line: temp$))
+      messageEntries.append(MessageEntry(line: "     ------ ------ ------ ------ ------ ------ ------ ------     "))
+    }//NEXT i
+    displayBlankLine()
+    getCommand()
+  }
+  mutating func printKlingonData () {
+    if klingonsInQuadrant > 0 {
+      print("Klingons in Quadrant \(klingonsInQuadrant)")
+      for i in 1...3 {
+        print("Klingon \(i) at Sector \(klingons[i][1]),\(klingons[i][2]) with \(klingons[i][3]) units of energy.")
+      }
+      displayBlankLine()
+    } else {
+      print("No Klingons in this Quadrant.")
     }
   }
 }
-
-
-
 
 
